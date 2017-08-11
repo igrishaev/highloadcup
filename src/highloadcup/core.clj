@@ -7,6 +7,8 @@
             [clojure.spec.alpha :as s]
             [highloadcup.spec :as spec]
             [ring.adapter.jetty :refer [run-jetty]]
+            [ring.middleware.keyword-params
+             :refer [wrap-keyword-params]]
             [ring.middleware.json :refer
              [wrap-json-response wrap-json-body]]))
 
@@ -119,6 +121,7 @@
 
 (def api-routes*
   (-> api-routes
+      wrap-keyword-params
       (wrap-json-body {:keywords? true})
       wrap-json-response))
 
