@@ -1,6 +1,12 @@
 (ns highloadcup.spec
   (:require [clojure.spec.alpha :as s]))
 
+(defn validate [spec value]
+  (if (= (s/conform spec value)
+         :clojure.spec.alpha/invalid)
+    nil
+    value))
+
 (s/def :user/id int?)
 (s/def :user/email string?)
 (s/def :user/first_name string?)

@@ -4,6 +4,8 @@
             [compojure.route :as route]
             [compojure.coercions :refer [as-int]]
             [mount.core :as mount]
+            [clojure.spec.alpha :as s]
+            [highloadcup.spec :as spec]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.json :refer
              [wrap-json-response wrap-json-body]]))
@@ -58,12 +60,22 @@
 (defn get-visit-by-id [loc-id]
   (json-response {:visit 42}))
 
+(defn spec-wrapper [handler spec]
+  (fn [{body :body :as request}]
+    (if (spec/validate spec body)
+      (handler request)
+      (json-response 400 {}))))
+
 (defn create-new-user [request]
   (let [fields (:body request)
         id (:id fields)
         user (assoc fields :id id)]
     (swap! db assoc-in [:users id] user)
     (json-response user)))
+
+(def create-new-user*
+  (-> create-new-user
+      (spec-wrapper :user/create)))
 
 (defn update-user
   [{body :body} user-id]
@@ -103,7 +115,7 @@
         (update-user request id))
 
   (POST "/users/new" request
-        (create-new-user request)))
+        (create-new-user* request)))
 
 (def api-routes*
   (-> api-routes
