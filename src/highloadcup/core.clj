@@ -38,8 +38,13 @@
   (POST "/visits/:id" [id :<< as-int :as request]
         (api/update-visit request id))
 
-  #_(POST "/users/new" request
-        (create-new-user* request)))
+  (POST "/users/new" request (api/create-user request))
+
+  (POST "/locations/new" request (api/create-location request))
+
+  (POST "/visits/new" request (api/create-visit request))
+
+  (route/not-found ""))
 
 (def api-routes*
   (-> api-routes

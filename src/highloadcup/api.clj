@@ -65,3 +65,30 @@
 (def update-visit
   (-> update-visit
       (spec-wrapper :visit/update)))
+
+(defn create-user
+  [{fields :body}]
+  (create-user fields)
+  (json-response {}))
+
+(def create-user
+  (-> create-user
+      (spec-wrapper :user/create)))
+
+(defn create-location
+  [{fields :body}]
+  (create-location fields)
+  (json-response {}))
+
+(def create-location
+  (-> create-location
+      (spec-wrapper :location/create)))
+
+(defn create-visit
+  [{fields :body}]
+  (create-visit fields)
+  (json-response {}))
+
+(def create-visit
+  (-> create-visit
+      (spec-wrapper :visit/create)))

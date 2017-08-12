@@ -48,6 +48,15 @@
 (def update-visit
   (partial update-entity :visits))
 
+(defn create-entity [entity data]
+  (swap! db assoc-in [entity (:id data)] data))
+
+(def create-user (partial create-entity :users))
+
+(def create-location (partial create-entity :locations))
+
+(def create-visit (partial create-entity :visits))
+
 #_(defn get-location-by-id [loc-id]
   (json-response {:location 42}))
 
