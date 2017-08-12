@@ -67,4 +67,5 @@
   (mount/stop #'server))
 
 (defn -main
-  [& args])
+  [& args]
+  (start!))

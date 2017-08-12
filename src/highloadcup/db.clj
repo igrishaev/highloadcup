@@ -1,10 +1,12 @@
 (ns highloadcup.db
-  (:require [highloadcup.time :as time]))
+  (:require [highloadcup.time :as time]
+            [highloadcup.cache :as cache]))
 
-(def db (atom {}))
+(def db (atom nil))
 
 (defn drop-db []
-  (reset! db {}))
+  (reset! db {})
+  (cache/drop-cache))
 
 (defn stats-db []
   {:users (-> @db :users count)
@@ -24,7 +26,11 @@
   (partial get-entity :visits))
 
 (defn update-entity [entity id data]
-  (swap! db update-in [entity id] merge data))
+  (swap! db update-in [entity id] merge data)
+  (if (= entity :visits)
+    (do ;; todo if field is not passed
+      (cache/drop-visit-cache id data)
+      (cache/create-visit-cache id data))))
 
 (def update-user
   (partial update-entity :users))
@@ -36,7 +42,10 @@
   (partial update-entity :visits))
 
 (defn create-entity [entity data]
-  (swap! db assoc-in [entity (:id data)] data))
+  (let [id (:id data)]
+    (swap! db assoc-in [entity id] data)
+    (if (= entity :visits)
+      (cache/create-visit-cache id data))))
 
 (def create-user (partial create-entity :users))
 
@@ -51,28 +60,32 @@
                 country
                 toDistance]} opt
 
-        user-pred #(-> % :user (= user-id))
+        visit-ids (cache/get-user-visits user-id)
+        visits (map get-visit visit-ids)
 
-        opt-preds [(when fromDate
-                     #(-> % :visited_at (> fromDate)))
+        opt-preds (remove
+                   nil?
 
-                   (when toDate
-                     #(-> % :visited_at (< toDate)))
+                   [(when fromDate
+                      #(-> % :visited_at (> fromDate)))
 
-                   (when country
-                     #(some-> %
-                              :location get-location
-                              :country (= country)))
+                    (when toDate
+                      #(-> % :visited_at (< toDate)))
 
-                   (when toDistance
-                     #(some-> %
-                              :location get-location
-                              :distance (< toDistance)))]
+                    (when country
+                      #(some-> %
+                               :location get-location
+                               :country (= country)))
 
-        main-pred (apply every-pred user-pred
-                         (remove nil? opt-preds))]
+                    (when toDistance
+                      #(some-> %
+                               :location get-location
+                               :distance (< toDistance)))])]
 
-    (filter main-pred (-> @db :visits vals))))
+    (if (empty? opt-preds)
+      visits
+      (let [pred (apply every-pred opt-preds)]
+        (filter pred visits)))))
 
 (defn location-visits
   [location-id opt]
