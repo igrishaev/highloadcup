@@ -1,9 +1,10 @@
 (ns highloadcup.spec
   (:require [clojure.spec.alpha :as s]))
 
+(def invalid :clojure.spec.alpha/invalid)
+
 (defn validate [spec value]
-  (if (= (s/conform spec value)
-         :clojure.spec.alpha/invalid)
+  (if (= (s/conform spec value) invalid)
     nil
     value))
 
