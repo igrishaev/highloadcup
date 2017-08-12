@@ -8,26 +8,24 @@
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.keyword-params
              :refer [wrap-keyword-params]]
+            [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.json :refer
              [wrap-json-response wrap-json-body]]))
 
-
-
-
-
 (defroutes api-routes
   (GET "/users/:id" [id :<< as-int]
-       (api/get-user-by-id id))
+       (api/get-user id))
 
   (GET "/locations/:id" [id :<< as-int]
-       (api/get-location-by-id id))
+       (api/get-location id))
 
   (GET "/visits/:id" [id :<< as-int]
-       (api/get-visit-by-id id))
+       (api/get-visit id))
 
   #_(GET "/locations/:id/avg" [id :<< as-int] (location-avg id))
 
-  #_(GET "/users/:id/visits" [id :<< as-int] (get-visits id))
+  (GET "/users/:id/visits" [id :<< as-int :as request]
+       (api/user-visits request))
 
   (POST "/users/:id" [id :<< as-int :as request]
         (api/update-user request id))
@@ -49,6 +47,7 @@
 (def api-routes*
   (-> api-routes
       wrap-keyword-params
+      wrap-params
       (wrap-json-body {:keywords? true})
       wrap-json-response))
 

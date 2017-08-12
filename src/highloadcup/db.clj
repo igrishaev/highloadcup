@@ -57,6 +57,31 @@
 
 (def create-visit (partial create-entity :visits))
 
+(defn user-visits
+  [user-id opt]
+  (let [{:keys [fromDate
+                toDate
+                country
+                toDistance]} opt
+
+        user-pred #(-> % :user (= user-id))
+
+        opt-preds [(when fromDate
+                     #(-> % :visited_at (> fromDate)))
+
+                   (when toDate
+                     #(-> % :visited_at (< toDate)))
+
+                   (when country
+                     #(-> % :location get-location :country (= country)))
+
+                   (when toDistance
+                     #(-> % :location get-location :distance (< toDistance)))]
+
+        main-pred (apply every-pred user-pred (remove nil? opt-preds))]
+
+    (filter main-pred (-> @db :visits vals))))
+
 #_(defn get-location-by-id [loc-id]
   (json-response {:location 42}))
 

@@ -9,10 +9,18 @@
    {:status status
     :body body}))
 
-(defn spec-wrapper [handler spec]
+(defn wrap-spec-body
+  [handler spec]
   (fn [{body :body :as request}]
     (if (spec/validate spec body)
       (handler request)
+      (json-response 400 {}))))
+
+(defn wrap-spec-params
+  [handler spec]
+  (fn [{params :params :as request}]
+    (if-let [new-params (spec/validate spec params)]
+      (handler (assoc request :params new-params))
       (json-response 400 {}))))
 
 (defn get-user
@@ -42,7 +50,7 @@
 
 (def update-user
   (-> update-user
-      (spec-wrapper :user/update)))
+      (wrap-spec-body :user/update)))
 
 (defn update-location
   [{fields :body} id]
@@ -53,7 +61,7 @@
 
 (def update-location
   (-> update-location
-      (spec-wrapper :location/update)))
+      (wrap-spec-body :location/update)))
 
 (defn update-visit
   [{fields :body} id]
@@ -64,7 +72,7 @@
 
 (def update-visit
   (-> update-visit
-      (spec-wrapper :visit/update)))
+      (wrap-spec-body :visit/update)))
 
 (defn create-user
   [{fields :body}]
@@ -73,7 +81,7 @@
 
 (def create-user
   (-> create-user
-      (spec-wrapper :user/create)))
+      (wrap-spec-body :user/create)))
 
 (defn create-location
   [{fields :body}]
@@ -82,7 +90,7 @@
 
 (def create-location
   (-> create-location
-      (spec-wrapper :location/create)))
+      (wrap-spec-body :location/create)))
 
 (defn create-visit
   [{fields :body}]
@@ -91,4 +99,16 @@
 
 (def create-visit
   (-> create-visit
-      (spec-wrapper :visit/create)))
+      (wrap-spec-body :visit/create)))
+
+(defn user-visits
+  [request]
+  (let [id (-> request :params :id read-string)
+        opt (-> request :params)
+        visits (db/user-visits id opt)]
+    (json-response
+     {:visits (sort-by :visited_at visits)})))
+
+(def user-visits
+  (-> user-visits
+      (wrap-spec-params :opt.visits/params)))

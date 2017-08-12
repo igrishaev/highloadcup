@@ -4,9 +4,10 @@
 (def invalid :clojure.spec.alpha/invalid)
 
 (defn validate [spec value]
-  (if (= (s/conform spec value) invalid)
-    nil
-    value))
+  (let [result (s/conform spec value)]
+    (if (= result invalid)
+      nil
+      result)))
 
 (def enum-gender #{"m" "f"})
 
@@ -69,3 +70,26 @@
                    :visit/user
                    :visit/visited_at
                    :visit/mark]))
+
+(defn x-integer? [x]
+  (if (integer? x)
+    x
+    (if (string? x)
+      (try
+        (Integer/parseInt x)
+        (catch Exception e
+          invalid))
+      invalid)))
+
+(def ->int (s/conformer x-integer?))
+
+(s/def :opt.visits/fromDate ->int)
+(s/def :opt.visits/toDate ->int)
+(s/def :opt.visits/country string?)
+(s/def :opt.visits/toDistance ->int)
+
+(s/def :opt.visits/params
+  (s/keys :opt-un [:opt.visits/fromDate
+                   :opt.visits/toDate
+                   :opt.visits/country
+                   :opt.visits/toDistance]))
