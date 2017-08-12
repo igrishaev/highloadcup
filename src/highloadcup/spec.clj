@@ -93,3 +93,17 @@
                    :opt.visits/toDate
                    :opt.visits/country
                    :opt.visits/toDistance]))
+
+
+(s/def :opt.avg/fromDate ->int)
+(s/def :opt.avg/toDate ->int)
+(s/def :opt.avg/fromAge ->int)
+(s/def :opt.avg/toAge ->int)
+(s/def :opt.avg/gender enum-gender)
+
+(s/def :opt.avg/params
+  (s/keys :opt-un [:opt.avg/fromDate
+                   :opt.avg/toDate
+                   :opt.avg/fromAge
+                   :opt.avg/toAge
+                   :opt.avg/gender]))

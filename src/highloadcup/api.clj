@@ -112,3 +112,25 @@
 (def user-visits
   (-> user-visits
       (wrap-spec-params :opt.visits/params)))
+
+(defn location-avg
+  [request]
+  (let [id (-> request :params :id Integer/parseInt)
+        opt (-> request :params)
+        visits (db/location-visits id opt)
+
+        avg (if (empty? visits)
+              0
+              (let [sum (apply + (map :mark visits))
+                    cnt (count visits)]
+                (/ sum cnt)))
+
+        rounded (if (> avg 0)
+                  (->> avg (format "%.5f") read-string)
+                  avg)]
+
+    (json-response {:avg rounded})))
+
+(def location-avg
+  (-> location-avg
+      (wrap-spec-params :opt.avg/params)))

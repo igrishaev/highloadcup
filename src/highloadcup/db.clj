@@ -1,4 +1,5 @@
-(ns highloadcup.db)
+(ns highloadcup.db
+  (:require [highloadcup.time :as time]))
 
 (def db (atom {}))
 
@@ -73,43 +74,57 @@
                      #(-> % :visited_at (< toDate)))
 
                    (when country
-                     #(-> % :location get-location :country (= country)))
+                     #(some-> %
+                              :location get-location
+                              :country (= country)))
 
                    (when toDistance
-                     #(-> % :location get-location :distance (< toDistance)))]
+                     #(some-> %
+                              :location get-location
+                              :distance (< toDistance)))]
 
-        main-pred (apply every-pred user-pred (remove nil? opt-preds))]
+        main-pred (apply every-pred user-pred
+                         (remove nil? opt-preds))]
 
     (filter main-pred (-> @db :visits vals))))
 
-#_(defn get-location-by-id [loc-id]
-  (json-response {:location 42}))
+(defn location-visits
+  [location-id opt]
+  (let [{:keys [fromDate
+                toDate
+                fromAge
+                toAge
+                gender]} opt
 
-#_(defn get-visit-by-id [loc-id]
-  (json-response {:visit 42}))
+        location-pred #(-> % :location (= location-id))
 
-#_(defn create-new-user [request]
-  (let [fields (:body request)
-        id (:id fields)
-        user (assoc fields :id id)]
-    (swap! db assoc-in [:users id] user)
-    (json-response user)))
+        opt-preds [(when fromDate
+                     #(-> % :visited_at (> fromDate)))
 
-#_(defn get-visits [user-id]
-  (let [pred (every-pred
-              (fn [visit] (-> visit :user (= user-id))))
-        visits (filter pred (-> @db :visits vals))]
-    (json-response {:visits visits})))
+                   (when toDate
+                     #(-> % :visited_at (< toDate)))
 
-#_(defn location-avg [loc-id]
-  (let [pred (every-pred
-              (fn [visit] (-> visit :location (= loc-id))))
-        visits (filter pred (-> @db :visits vals))
-        sum (apply + (map :mark visits))
-        cnt (count visits) ;; zero
-        result (/ sum cnt) ;; rount to 5
+                   (when fromAge
+                     #(some-> %
+                              :user
+                              get-user :birth_date
+                              time/get-age
+                              (> fromAge)))
 
-        ]
-    (json-response {:avg result}))
+                   (when toAge
+                     #(some-> %
+                              :user
+                              get-user :birth_date
+                              time/get-age
+                              (< toAge)))
 
-  )
+                   (when gender
+                     #(some-> %
+                              :user
+                              get-user :gender
+                              (= gender)))]
+
+        main-pred (apply every-pred location-pred
+                         (remove nil? opt-preds))]
+
+    (filter main-pred (-> @db :visits vals))))

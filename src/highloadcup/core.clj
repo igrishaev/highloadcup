@@ -22,7 +22,8 @@
   (GET "/visits/:id" [id :<< as-int]
        (api/get-visit id))
 
-  #_(GET "/locations/:id/avg" [id :<< as-int] (location-avg id))
+  (GET "/locations/:id/avg" [id :<< as-int :as request]
+       (api/location-avg request))
 
   (GET "/users/:id/visits" [id :<< as-int :as request]
        (api/user-visits request))
