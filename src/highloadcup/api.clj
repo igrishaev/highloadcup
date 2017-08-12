@@ -40,9 +40,9 @@
         (json-response {}))
     (json-response 404 {})))
 
-(def create-user
-  (-> create-user
-      (spec-wrapper :user/create)))
+(def update-user
+  (-> update-user
+      (spec-wrapper :user/update)))
 
 (defn update-location
   [{fields :body} id]
@@ -51,9 +51,17 @@
         (json-response {}))
     (json-response 404 {})))
 
+(def update-location
+  (-> update-location
+      (spec-wrapper :location/update)))
+
 (defn update-visit
   [{fields :body} id]
   (if-let [_ (db/get-visit id)]
     (do (db/update-visit id fields)
         (json-response {}))
     (json-response 404 {})))
+
+(def update-visit
+  (-> update-visit
+      (spec-wrapper :visit/update)))
