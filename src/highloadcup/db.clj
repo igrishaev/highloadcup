@@ -3,27 +3,13 @@
 
 (def db (atom {}))
 
-(swap! db assoc-in [:users 1]
-       {:id 1
-        :email "johndoe@gmail.com"
-        :first_name "John"
-        :last_name "Doe"
-        :gender "m"
-        :birth_date -1613433600})
+(defn drop-db []
+  (reset! db {}))
 
-(swap! db assoc-in [:visits 1]
-       {:id 1
-        :location 44
-        :user 4
-        :visited_at 123123123123
-        :mark 2})
-
-(swap! db assoc-in [:visits 6]
-       {:id 2
-        :location 44
-        :user 1
-        :visited_at 532523423
-        :mark 5})
+(defn stats-db []
+  {:users (-> @db :users count)
+   :locations (-> @db :locations count)
+   :visits (-> @db :visits count)})
 
 (defn get-entity [entity id]
   (get-in @db [entity id]))
