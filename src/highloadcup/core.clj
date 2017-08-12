@@ -11,15 +11,9 @@
             [ring.middleware.json :refer
              [wrap-json-response wrap-json-body]]))
 
-#_(defn spec-wrapper [handler spec]
-  (fn [{body :body :as request}]
-    (if (spec/validate spec body)
-      (handler request)
-      (json-response 400 {}))))
 
-#_(def create-new-user*
-  (-> create-new-user
-      (spec-wrapper :user/create)))
+
+
 
 (defroutes api-routes
   (GET "/users/:id" [id :<< as-int]
@@ -35,8 +29,14 @@
 
   #_(GET "/users/:id/visits" [id :<< as-int] (get-visits id))
 
-  #_(POST "/users/:id" [id :<< as-int :as request]
-        (update-user request id))
+  (POST "/users/:id" [id :<< as-int :as request]
+        (api/update-user request id))
+
+  (POST "/locations/:id" [id :<< as-int :as request]
+        (api/update-location request id))
+
+  (POST "/visits/:id" [id :<< as-int :as request]
+        (api/update-visit request id))
 
   #_(POST "/users/new" request
         (create-new-user* request)))

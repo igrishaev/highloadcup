@@ -9,20 +9,51 @@
    {:status status
     :body body}))
 
-(defn get-user-by-id
+(defn spec-wrapper [handler spec]
+  (fn [{body :body :as request}]
+    (if (spec/validate spec body)
+      (handler request)
+      (json-response 400 {}))))
+
+(defn get-user
   [id]
-  (if-let [user (db/get-user-by-id id)]
+  (if-let [user (db/get-user id)]
     (json-response user)
     (json-response 400 {})))
 
-(defn get-location-by-id
+(defn get-location
   [id]
-  (if-let [location (db/get-location-by-id id)]
+  (if-let [location (db/get-location id)]
     (json-response location)
     (json-response 400 {})))
 
-(defn get-visit-by-id
+(defn get-visit
   [id]
-  (if-let [visit (db/get-visit-by-id id)]
+  (if-let [visit (db/get-visit id)]
     (json-response visit)
     (json-response 400 {})))
+
+(defn update-user
+  [{fields :body} id]
+  (if-let [_ (db/get-user id)]
+    (do (db/update-user id fields)
+        (json-response {}))
+    (json-response 404 {})))
+
+(def create-user
+  (-> create-user
+      (spec-wrapper :user/create)))
+
+(defn update-location
+  [{fields :body} id]
+  (if-let [_ (db/get-location id)]
+    (do (db/update-location id fields)
+        (json-response {}))
+    (json-response 404 {})))
+
+(defn update-visit
+  [{fields :body} id]
+  (if-let [_ (db/get-visit id)]
+    (do (db/update-visit id fields)
+        (json-response {}))
+    (json-response 404 {})))

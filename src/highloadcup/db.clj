@@ -24,17 +24,29 @@
         :visited_at 532523423
         :mark 5})
 
-(defn get-entity-by-id [entity id]
+(defn get-entity [entity id]
   (get-in @db [entity id]))
 
-(def get-user-by-id
-  (partial get-entity-by-id :users))
+(def get-user
+  (partial get-entity :users))
 
-(def get-location-by-id
-  (partial get-entity-by-id :locations))
+(def get-location
+  (partial get-entity :locations))
 
-(def get-visit-by-id
-  (partial get-entity-by-id :visits))
+(def get-visit
+  (partial get-entity :visits))
+
+(defn update-entity [entity id data]
+  (swap! db update-in [entity id] merge data))
+
+(def update-user
+  (partial update-entity :users))
+
+(def update-location
+  (partial update-entity :locations))
+
+(def update-visit
+  (partial update-entity :visits))
 
 #_(defn get-location-by-id [loc-id]
   (json-response {:location 42}))
@@ -48,11 +60,6 @@
         user (assoc fields :id id)]
     (swap! db assoc-in [:users id] user)
     (json-response user)))
-
-#_(defn update-user
-  [{body :body} user-id]
-  (swap! db update-in [:users user-id] merge body)
-  (json-response {}))
 
 #_(defn get-visits [user-id]
   (let [pred (every-pred
