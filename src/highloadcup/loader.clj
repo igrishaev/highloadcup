@@ -1,6 +1,7 @@
 (ns highloadcup.loader
-  (:require [clojure.string :as str]
-            [highloadcup.db :as db]
+  (:require [highloadcup.db :as db]
+            [highloadcup.conf :refer [conf]]
+            [clojure.string :as str]
             [clojure.java.io :as io]
             [cheshire.core :as json]))
 
@@ -29,3 +30,6 @@
       (doseq [item items]
         (db/create-entity entity item))))
   (db/stats-db))
+
+(defn auto-load []
+  (load-db (:zip-path conf)))
