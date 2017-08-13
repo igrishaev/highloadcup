@@ -1,6 +1,41 @@
 (ns highloadcup.db
   (:require [highloadcup.time :as time]
+            [clojure.java.io :as io]
+            [datomic.api :as d]
             [highloadcup.cache :as cache]))
+
+(def db-uri "datomic:mem://highloadcup")
+
+(d/delete-database db-uri)
+
+(d/create-database db-uri)
+
+(def conn (d/connect db-uri))
+
+(defn read-edn
+  [filename]
+  (-> filename
+      io/resource
+      slurp
+      read-string))
+
+(defn transact
+  [data]
+  @(d/transact conn data))
+
+(defn load-schema []
+  (-> "schema.edn" read-edn transact))
+
+(defn query [q & args]
+  (apply d/q q (d/db conn) args))
+
+
+
+;;;;;;;;;;;;;;;;
+
+
+
+
 
 (def db (atom nil))
 

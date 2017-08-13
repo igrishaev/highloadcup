@@ -5,6 +5,11 @@
             [clojure.java.io :as io]
             [cheshire.core :as json]))
 
+
+(defn prepend-map [m ns]
+  (into {} (for [[k v] m]
+             [(keyword (name ns) (name k)) v])))
+
 (defn read-zip [path]
   (let [zip (java.util.zip.ZipFile. path)
         entries (-> zip .entries enumeration-seq)]
@@ -14,22 +19,43 @@
 (defn read-stream [stream]
   (json/parse-stream (io/reader stream) true))
 
-(defn load-data [entity data]
-  (doseq [item (get data entity)]
-    (db/create-entity entity item)))
-
 (defn get-entity [data]
   (-> data keys first))
 
+(defn user-ref [id]
+  [:user/id id])
+
+(defn location-ref [id]
+  [:location/id id])
+
+(defn load-data [entity items]
+
+  (case entity
+
+    :users
+    (db/transact
+     (for [item items]
+       (prepend-map item :user)))
+
+    :locations
+    (db/transact
+     (for [item items]
+       (prepend-map item :location)))
+
+    :visits
+    (db/transact
+     (for [item items]
+       (-> item
+           (update :user user-ref)
+           (update :location location-ref)
+           (prepend-map :visit))))))
+
 (defn load-db [path]
-  (db/drop-db)
   (doseq [stream (read-zip path)]
     (let [data (read-stream stream)
           entity (get-entity data)
           items (get data entity)]
-      (doseq [item items]
-        (db/create-entity entity item))))
-  (db/stats-db))
+      (load-data entity items))))
 
 (defn auto-load []
   (load-db (:zip-path conf)))

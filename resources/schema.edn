@@ -1,0 +1,74 @@
+[
+ ;; user
+
+ {:db/ident       :user/id
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique      :db.unique/identity}
+
+ {:db/ident       :user/email
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :user/first_name
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :user/last_name
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :user/gender
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :user/birth_date
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one}
+
+ ;; location
+
+ {:db/ident       :location/id
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique      :db.unique/identity}
+
+ {:db/ident       :location/place
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :location/country
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :location/city
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :location/distance
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one}
+
+ ;; visit
+
+ {:db/ident       :visit/id
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique      :db.unique/identity}
+
+ {:db/ident       :visit/location
+  :db/valueType   :db.type/ref
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :visit/user
+  :db/valueType   :db.type/ref
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :visit/visited_at
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one}
+
+ {:db/ident       :visit/mark
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one}
+ ]

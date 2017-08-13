@@ -6,6 +6,7 @@
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
                  [cprop "0.1.10"]
+                 [com.datomic/datomic-free "0.9.5561.54"]
                  [cheshire "5.7.1"]
                  [compojure "1.6.0"]
                  [mount "0.1.11"]
