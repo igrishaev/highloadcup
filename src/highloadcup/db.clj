@@ -80,12 +80,17 @@
                     (when toDistance
                       #(some-> %
                                :location get-location
-                               :distance (< toDistance)))])]
+                               :distance (< toDistance)))])
 
-    (if (empty? opt-preds)
-      visits
-      (let [pred (apply every-pred opt-preds)]
-        (filter pred visits)))))
+        visits (if (empty? opt-preds)
+                 visits
+                 (let [pred (apply every-pred opt-preds)]
+                   (filter pred visits)))]
+
+    (for [visit visits]
+      {:mark (:mark visit)
+       :visited_at (:visited_at visit)
+       :place (-> visit :location get-location :place)})))
 
 (defn location-visits
   [location-id opt]
