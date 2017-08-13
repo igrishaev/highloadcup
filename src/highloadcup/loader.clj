@@ -4,27 +4,28 @@
             [clojure.java.io :as io]
             [cheshire.core :as json]))
 
-(defn is-json? [file]
-  (-> file .getName (.endsWith ".json")))
+(defn read-zip [path]
+  (let [zip (java.util.zip.ZipFile. path)
+        entries (-> zip .entries enumeration-seq)]
+    (for [e entries]
+      (.getInputStream zip e))))
 
-(defn get-json-files [path]
-  (filter is-json? (file-seq (io/file path))))
-
-(defn read-json [file]
-  (json/parse-stream (io/reader file) true))
+(defn read-stream [stream]
+  (json/parse-stream (io/reader stream) true))
 
 (defn load-data [entity data]
   (doseq [item (get data entity)]
     (db/create-entity entity item)))
 
-(defn get-entity [file]
-  (-> file .getName (str/split #"_") first keyword))
+(defn get-entity [data]
+  (-> data keys first))
 
 (defn load-db [path]
   (db/drop-db)
-  (let [files (get-json-files path)]
-    (doseq [file files]
-      (let [entity (get-entity file)
-            data (read-json file)]
-        (load-data entity data))))
+  (doseq [stream (read-zip path)]
+    (let [data (read-stream stream)
+          entity (get-entity data)
+          items (get data entity)]
+      (doseq [item items]
+        (db/create-entity entity item))))
   (db/stats-db))

@@ -1,4 +1,7 @@
 
+repl:
+	lein repl
+
 uberjar:
 	lein uberjar
 
