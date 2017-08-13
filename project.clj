@@ -5,8 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
-                 ;; [cprop "0.1.10"]
-                 ;; [clj-time "0.14.0"]
+                 [cprop "0.1.10"]
                  [cheshire "5.7.1"]
                  [compojure "1.6.0"]
                  [mount "0.1.11"]
@@ -19,4 +18,5 @@
 
   :uberjar-name "highloadcup.jar"
 
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}
+             :dev {:resource-paths ["env/dev/resources"]}})

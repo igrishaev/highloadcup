@@ -107,3 +107,12 @@
                    :opt.avg/fromAge
                    :opt.avg/toAge
                    :opt.avg/gender]))
+
+(s/def :cfg/server-port int?)
+(s/def :cfg/server-host string?)
+(s/def :cfg/zip-path string?)
+
+(s/def :cfg/params
+  (s/keys :req-un [:cfg/server-port
+                   :cfg/server-host
+                   :cfg/zip-path]))
