@@ -1,4 +1,8 @@
 
+PROJECT := highloadcup
+REPO_HOST := stor.highloadcup.ru
+REPO_PATH := travels/fancy_yak
+
 repl:
 	lein repl
 
@@ -6,16 +10,16 @@ uberjar:
 	lein uberjar
 
 docker-build: uberjar
-	docker build -t highloadcup .
+	docker build -t $(PROJECT) .
 
 docker-run:
-	docker run -it --rm -p 8080:80 -v $(CURDIR)/tmp/data:/tmp/data highloadcup
+	docker run -it --rm -p 8080:80 -v $(CURDIR)/tmp/data:/tmp/data $(PROJECT)
 
 docker-tag:
-	docker tag highloadcup:latest stor.highloadcup.ru/travels/fancy_yak
+	docker tag $(PROJECT):latest $(REPO_HOST)/$(REPO_PATH)
 
 docker-push:
-	docker push stor.highloadcup.ru/travels/fancy_yak
+	docker push $(REPO_HOST)/$(REPO_PATH)
 
 docker-auth:
-	docker login stor.highloadcup.ru
+	docker login $(REPO_HOST)
