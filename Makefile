@@ -10,3 +10,6 @@ docker-build: uberjar
 
 docker-run:
 	docker run -it --rm -p 8080:80 -v $(CURDIR)/tmp/data:/tmp/data highloadcup
+
+docker-auth:
+	docker login stor.highloadcup.ru

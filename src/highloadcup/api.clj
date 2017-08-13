@@ -27,19 +27,19 @@
   [id]
   (if-let [user (db/get-user id)]
     (json-response user)
-    (json-response 400 {})))
+    (json-response 404 {})))
 
 (defn get-location
   [id]
   (if-let [location (db/get-location id)]
     (json-response location)
-    (json-response 400 {})))
+    (json-response 404 {})))
 
 (defn get-visit
   [id]
   (if-let [visit (db/get-visit id)]
     (json-response visit)
-    (json-response 400 {})))
+    (json-response 404 {})))
 
 (defn update-user
   [{fields :body} id]
