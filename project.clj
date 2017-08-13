@@ -15,4 +15,8 @@
 
   :main ^:skip-aot highloadcup.core
 
-  :target-path "target/highloadcup.jar")
+  :target-path "target/%s"
+
+  :uberjar-name "highloadcup.jar"
+
+  :profiles {:uberjar {:aot :all}})
