@@ -211,22 +211,22 @@
     (let [url (get-url "/users/999919999/visits")
           res (client/get url base-params)]
 
-      (is (= (:status res) 200))
-      (is (= (:body res) {:visits []}))))
+      (is (= (:status res) 404))
+      (is (= (:body res) "{}"))))
 
   (testing "avg: ok"
     (let [url (get-url "/locations/1/avg")
           res (client/get url base-params)]
 
       (is (= (:status res) 200))
-      (is (= (:body res) {:avg 2.5}))))
+      (is (= (:body res) {:avg 2.7561}))))
 
   (testing "avg: no such user"
     (let [url (get-url "/locations/991991991/avg")
           res (client/get url base-params)]
 
-      (is (= (:status res) 200))
-      (is (= (:body res) {:avg 0}))))
+      (is (= (:status res) 404))
+      (is (= (:body res) "{}"))))
 
   (testing "avg: fromDate"
     (let [url (get-url "/locations/1/avg")
@@ -255,14 +255,14 @@
       (is (= (:status res) 200))
       (is (= (:body res) {:avg 0}))))
 
-  #_(testing "avg: gender"
+  (testing "avg: gender"
     (let [url (get-url "/locations/1/avg")
           params (assoc base-params
                         :query-params {:gender "m"})
           res (client/get url params)]
 
       (is (= (:status res) 200))
-      (is (= (:body res) {:avg 0}))))
+      (is (= (:body res) {:avg 3.04762}))))
 
 
 

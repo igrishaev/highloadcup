@@ -147,6 +147,7 @@
                        gender]}]
 
   (cond-> '{:find [(avg ?mark) .]
+            :with [?v]
             :in [$ ?location-id]
             :args []
             :where [[?v :location ?location-id]

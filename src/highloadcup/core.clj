@@ -20,10 +20,12 @@
 
 ;; todo:
 ;; java start args
-;; unit tests
 ;; docker tmp path r/o
 ;; make command to load data.zip
 ;; apply middleware selective
 ;; build in docker
 ;; logging
 ;; catch top exc
+;; drop cache ns
+;; add tests for update visits
+;; try http-kit

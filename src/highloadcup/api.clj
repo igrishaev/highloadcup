@@ -112,25 +112,33 @@
   (zipmap [:mark :visited_at :place] row))
 
 (defn user-visits
-  [request]
-  (let [id (-> request :params :id read-string)
-        opt (-> request :params)
-        visits (db/user-visits id opt)]
-    (json-response
-     {:visits (->> visits
-                   (map make-visits-map)
-                   (sort-by :visited_at))})))
+  [request] ;; todo exists fn
+  (let [id (-> request :params :id read-string)]
+    (if (db/get-user id)
+      (let [opt (-> request :params)
+            visits (db/user-visits id opt)]
+        (json-response
+         {:visits (->> visits
+                       (map make-visits-map)
+                       (sort-by :visited_at))}))
+      (json-response 404 {}))))
 
 (def user-visits
   (-> user-visits
       (wrap-spec-params :opt.visits/params)))
 
-(defn location-avg ;; todo round
+(defn smart-round [val]
+  (read-string (format "%.5f" val)))
+
+(defn location-avg
   [request]
-  (let [id (-> request :params :id read-string)
-        opt (-> request :params)
-        avg (or (db/location-avg id opt) 0)]
-    (json-response {:avg avg})))
+  (let [id (-> request :params :id read-string)]
+    (if (db/get-location id)
+      (let [opt (-> request :params)
+            res (db/location-avg id opt)
+            avg (if res (smart-round res) 0)]
+        (json-response {:avg avg}))
+      (json-response 404 {}))))
 
 (def location-avg
   (-> location-avg
