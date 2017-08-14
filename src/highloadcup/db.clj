@@ -63,6 +63,10 @@
 
 (def get-location (partial get-entity "location" '[*]))
 
+(defn visit-exists [id]
+  (:db/id
+   (d/pull (d/db conn) [:db/id] [:visit/id id])))
+
 (defn get-visit [id]
   (let [pattern '[* {:location [:location/id]
                      :user [:user/id]}]

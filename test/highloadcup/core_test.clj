@@ -62,6 +62,7 @@
     (let [url (get-url "/users/new")
           user new-user
           params (assoc base-params
+                        :query-params {:queryId 999}
                         :form-params user
                         :content-type :json)
           res (client/post url params)]
@@ -124,15 +125,75 @@
               :visited_at 965970299
               :place "Фонарь"}))
 
+      (is (= (last visits)
+             {:mark 4
+              :visited_at 1418372744
+              :place "Забор"}))
+
       (is (= (-> dates sort vec)
              (-> dates vec)))))
 
-  ;; test vists filters
+  (testing "user visits: fromDate"
+    (let [url (get-url "/users/1/visits")
+          params (assoc base-params
+                        :query-params {:fromDate 965970299})
+          res (client/get url params)
+          visits (-> res :body :visits)
+          dates (map :visited_at visits)]
 
+      (is (= (:status res) 200))
+      (is (= (count visits) 39))
+      (is (= (first visits)
+             {:mark 4
+              :visited_at 969951712
+              :place "Гараж"}))))
 
+  (testing "user visits: toDate"
+    (let [url (get-url "/users/1/visits")
+          params (assoc base-params
+                        :query-params {:toDate 1418372744})
+          res (client/get url params)
+          visits (-> res :body :visits)
+          dates (map :visited_at visits)]
 
+      (is (= (:status res) 200)) ;; todo first/last
+      (is (= (count visits) 39))))
 
+  (testing "user visits: country"
+    (let [url (get-url "/users/1/visits")
+          params (assoc base-params
+                        :query-params {:country "Австралия"})
+          res (client/get url params)
+          visits (-> res :body :visits)]
 
+      (is (= (:status res) 200))
+      (is (= (count visits) 2))))
+
+  (testing "user visits: toDistance"
+    (let [url (get-url "/users/1/visits")
+          params (assoc base-params
+                        :query-params {:toDistance 10})
+          res (client/get url params)
+          visits (-> res :body :visits)]
+
+      (is (= (:status res) 200))
+      (is (= (count visits) 5))))
+
+  (testing "user visits: wrong params"
+    (let [url (get-url "/users/1/visits")
+          params (assoc base-params
+                        :query-params {:toDistance "arr"})
+          res (client/get url params)]
+
+      (is (= (:status res) 400))
+      (is (= (:body res) "{}"))))
+
+  (testing "user visits: no such user"
+    (let [url (get-url "/users/999919999/visits")
+          res (client/get url base-params)]
+
+      (is (= (:status res) 200))
+      (is (= (:body res) {:visits []}))))
 
 
 

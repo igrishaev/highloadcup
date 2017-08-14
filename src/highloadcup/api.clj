@@ -110,13 +110,15 @@
 
 (defn user-visits
   [request]
-  (let [id (-> request :params :id read-string)
-        opt (-> request :params)
-        visits (db/user-visits id opt)]
-    (json-response
-     {:visits (->> visits
-                   (sort-by :visited_at)
-                   (map fix-location-place))})))
+  (let [id (-> request :params :id read-string)]
+    (if (db/visit-exists id)
+      (let [opt (-> request :params)
+            visits (db/user-visits id opt)]
+        (json-response
+         {:visits (->> visits
+                       (sort-by :visited_at)
+                       (map fix-location-place))}))
+      (json-response {:visits []}))))
 
 (def user-visits
   (-> user-visits
