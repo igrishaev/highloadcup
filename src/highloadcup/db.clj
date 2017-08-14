@@ -147,15 +147,15 @@
                        gender]}]
 
   (cond-> '{:find [(avg ?mark) .]
-            :in [$ ?location]
+            :in [$ ?location-id]
             :args []
-            :where [[?v :location ?location]
+            :where [[?v :location ?location-id]
                     [?v :mark ?mark]]}
 
     true
     (update :args conj
             (d/db conn)
-            [:location/id location-id]) ;; check resolve
+            location-id)
 
     (or fromDate toDate)
     (update :where conj
@@ -177,7 +177,8 @@
 
     (or fromAge toAge gender)
     (update :where conj
-            '[?v :user ?user])
+            '[?v :user ?user-id]
+            '[?user :user/id ?user-id])
 
     (or fromAge toAge)
     (update :where conj
