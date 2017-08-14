@@ -67,6 +67,10 @@
   (:db/id
    (d/pull (d/db conn) [:db/id] [:visit/id id])))
 
+(defn location-exists [id]
+  (:db/id
+   (d/pull (d/db conn) [:db/id] [:location/id id])))
+
 (defn get-visit [id]
   (let [pattern '[* {:location [:location/id]
                      :user [:user/id]}]
@@ -209,10 +213,10 @@
 
     toDate
     (->
-     (update :in conj '?toDistance)
+     (update :in conj '?toDate)
      (update :args conj toDate)
      (update :where conj
-             '[(< ?visited-at ?fromDate)]))
+             '[(< ?visited-at ?toDate)]))
 
     (or toAge gender)
     (update :where conj

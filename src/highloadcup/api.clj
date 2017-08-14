@@ -124,12 +124,14 @@
   (-> user-visits
       (wrap-spec-params :opt.visits/params)))
 
-(defn location-avg
+(defn location-avg ;; todo round
   [request]
-  (let [id (-> request :params :id Integer/parseInt)
-        opt (-> request :params)
-        avg (or (db/location-avg id opt) 0)] ;; todo round?
-    (json-response {:avg avg})))
+  (let [id (-> request :params :id read-string)]
+    (if (db/location-exists id)
+      (let [opt (-> request :params)
+            avg (or (db/location-avg id opt) 0)]
+        (json-response {:avg avg}))
+      (json-response {:avg 0}))))
 
 (def location-avg
   (-> location-avg

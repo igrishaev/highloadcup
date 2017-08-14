@@ -112,6 +112,19 @@
 
   ;; create/update visits
 
+  (testing "getting a visit"
+    (let [url (get-url "/locations/1")
+          res (client/get url base-params)]
+      (is (= (:status res) 200))
+      (is (= (:body res)
+             {:place "Набережная",
+              :country "Аргентина",
+              :city "Москва",
+              :distance 6,
+              :id 1}))))
+
+  ;; create/update locations
+
   (testing "user visits"
     (let [url (get-url "/users/1/visits")
           res (client/get url base-params)
@@ -194,6 +207,41 @@
 
       (is (= (:status res) 200))
       (is (= (:body res) {:visits []}))))
+
+  (testing "avg: ok"
+    (let [url (get-url "/locations/1/avg")
+          res (client/get url base-params)]
+
+      (is (= (:status res) 200))
+      (is (= (:body res) {:avg 2.5}))))
+
+  (testing "avg: fromDate"
+    (let [url (get-url "/locations/1/avg")
+          params (assoc base-params
+                        :query-params {:fromDate "2147483647"})
+          res (client/get url params)]
+
+      (is (= (:status res) 200))
+      (is (= (:body res) {:avg 0}))))
+
+  (testing "avg: toDate"
+    (let [url (get-url "/locations/1/avg")
+          params (assoc base-params
+                        :query-params {:toDate "1"})
+          res (client/get url params)]
+
+      (is (= (:status res) 200))
+      (is (= (:body res) {:avg 0}))))
+
+  (testing "avg: no such user"
+    (let [url (get-url "/locations/991991991/avg")
+          res (client/get url base-params)]
+
+      (is (= (:status res) 200))
+      (is (= (:body res) {:avg 0}))))
+
+  ;; avg location exists
+
 
 
 
