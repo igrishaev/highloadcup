@@ -123,7 +123,7 @@
   [request]
   (let [id (-> request :params :id Integer/parseInt)
         opt (-> request :params)
-        avg (or (db/location-avg id opt) 0)]
+        avg (or (db/location-avg id opt) 0)] ;; todo round?
     (json-response {:avg avg})))
 
 (def location-avg
