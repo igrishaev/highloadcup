@@ -50,20 +50,28 @@
 (defn query [q & args]
   (apply d/q q (d/db conn) args))
 
-(defn get-entity [entity id]
+(defn get-entity [entity pattern id]
   (let [pk (keyword entity "id")
         ref [pk id]
-        e (d/pull (d/db conn) '[*] ref)]
+        e (d/pull (d/db conn) pattern ref)]
     (when-let [id (pk e)]
       (-> e
           (dissoc pk :db/id)
           (assoc :id id)))))
 
-(def get-user (partial get-entity "user"))
+(def get-user (partial get-entity "user" '[*]))
 
-(def get-location (partial get-entity "location"))
+(def get-location (partial get-entity "location" '[*]))
 
-(def get-visit (partial get-entity "visit"))
+(defn get-visit [id]
+  (let [pattern '[* {:location [:location/id]
+                     :user [:user/id]}]
+        visit (get-entity "visit" pattern id)
+        {{location-id :location/id} :location
+         {user-id :user/id} :user} visit]
+    (assoc visit
+           :location location-id
+           :user user-id)))
 
 (defn get-entity-ref [entity id]
   [(keyword (name entity) "id") id])
