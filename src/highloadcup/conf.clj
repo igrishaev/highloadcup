@@ -18,7 +18,9 @@
       config
       (System/exit 1))))
 
-(mount/defstate conf
+(mount/defstate
+  ^{:on-reload :noop}
+  conf
   :start (on-start)
   :stop nil)
 

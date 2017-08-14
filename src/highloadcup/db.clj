@@ -35,7 +35,9 @@
     ;; close conn
     nil))
 
-(mount/defstate conn
+(mount/defstate
+  ^{:on-reload :noop}
+  conn
   :start (on-start)
   :stop (on-stop))
 
@@ -63,48 +65,66 @@
 
 (def get-visit (partial get-entity "visit"))
 
+(defn get-entity-ref [entity id]
+  [(keyword (name entity) "id") id])
+
+(def get-user-ref (partial get-entity-ref :user))
+
+(def get-location-ref (partial get-entity-ref :location))
+
+(defn ->datum
+  [entity {id :id :as fields}]
+  (case entity
+
+    :user
+    (-> fields
+        (dissoc :id)
+        (assoc :user/id id))
+
+    :location
+    (-> fields
+        (dissoc :id)
+        (assoc :location/id id))
+
+    :visit
+    (-> fields
+        (dissoc :id)
+        (assoc :visit/id id)
+        (cond->
+          :user
+          (update :user db/get-user-ref)
+          :location
+          (update :location db/get-location-ref)))))
+
+(defn upsert-entity
+  [entity fields]
+  (let [datum (->datum entity fields)]
+    (transact [datum])))
+
 (defn remap-query
   [{args :args :as m}]
   {:query (dissoc m :args)
    :args args})
 
-(defn user-visits [user-id {:keys [fromDate
-                                   toDate
-                                   country
-                                   toDistance]}]
-  #_(d/pull (d/db conn) '[{:_user [*]} ] [:user/id user-id])
-  #_(d/pull (d/db conn) '[:_visits] [:user/id user-id])
+(defn user-visits
+  [user-id {:keys [fromDate
+                   toDate
+                   country
+                   toDistance]}]
 
-  #_(query '[:find (pull ?e [*])
-           :in $ ?user-ref ?fromDate ?toDate ?country ?toDistance
-           :where
-           [?e :user ?user-ref]
-
-           [?e :visited_at ?visited-at]
-           [(> ?visited-at ?fromDate)]
-           [(< ?visited-at ?toDate)]
-
-           [?e :location ?location]
-           [?location :country ?country]
-
-           [?location :distance ?distance]
-           [(< ?distance ?toDistance)]]
-
-         [:user/id user-id]
-         111111111
-         999999999
-         "test"
-         9999)
-
-  (cond-> '{:find [(pull ?e [* {:location [*]}])]
-            :in [$ ?user-ref]
+  (cond-> '{:find [(pull ?v [* {:location [*]}])]
+            :in [$ ?user]
             :args []
-            :where [[?e :user ?user-ref]]}
+            :where [[?v :user ?user]]}
+
+    true
+    (update :args conj
+            (d/db conn)
+            [:user/id user-id]) ;; check resolve
 
     (or fromDate toDate)
-    (->
-     (update :where conj
-             '[?e :visited_at ?visited-at]))
+    (update :where conj
+            '[?v :visited_at ?visited-at])
 
     fromDate
     (->
@@ -121,9 +141,8 @@
              '[(< ?visited-at ?toDate)]))
 
     (or toDistance country)
-    (->
-     (update :where conj
-             '[?e :location ?location]))
+    (update :where conj
+            '[?v :location ?location])
 
     toDistance
     (->
@@ -138,46 +157,22 @@
      (update :in conj '?country)
      (update :args conj country)
      (update :where conj
-             '[?e :location ?location]
+             '[?v :location ?location]
              '[?location :country ?country]))
 
     true
     remap-query
-)
-
-
-  #_(query '[:find (pull ?e [* {:location [*]}])
-           :in $ ?user-ref ?country ;; ?fromDate ?toDate ?country ?toDistance
-           :where
-           [?e :user ?user-ref]
-
-           ;; [?e :visited_at ?visited-at]
-           ;; [(> ?visited-at ?fromDate)]
-           ;; [(< ?visited-at ?toDate)]
-
-           [?e :location ?location]
-           [?location :country ?country]
-
-           ;; [?location :distance ?distance]
-           ;; [(< ?distance ?toDistance)]
-                         ]
-
-         [:user/id 1]
-         "Австралия"
-         ;; 111111111
-         ;; 999999999
-         ;; "test"
-         ;; 9999
-         )
-
-  )
-
+    d/query))
 
 (defn age-to-ts [to-age]
   (c/to-epoch (t/minus (t/now) (t/years to-age))))
 
-(defn location-visits
-  [location-id {:keys [fromDate toDate fromAge toAge gender]}]
+(defn location-avg
+  [location-id {:keys [fromDate
+                       toDate
+                       fromAge
+                       toAge
+                       gender]}]
 
   (cond-> '{:find [(avg ?mark) .]
             :in [$ ?location]
@@ -230,140 +225,4 @@
     true
     (->
      remap-query
-     d/query
-)))
-
-;;;;;;;;;;;;;;;;
-
-
-
-(def db (atom nil))
-
-(defn drop-db []
-  (reset! db {})
-  (cache/drop-cache))
-
-(defn stats-db []
-  {:users (-> @db :users count)
-   :locations (-> @db :locations count)
-   :visits (-> @db :visits count)})
-
-#_(defn get-entity [entity id]
-  (get-in @db [entity id]))
-
-#_(def get-user
-  (partial get-entity :users))
-
-#_(def get-location
-  (partial get-entity :locations))
-
-#_(def get-visit
-  (partial get-entity :visits))
-
-(defn update-entity [entity id data]
-  (swap! db update-in [entity id] merge data)
-  (if (= entity :visits)
-    (do ;; todo if field is not passed
-      (cache/drop-visit-cache id data)
-      (cache/create-visit-cache id data))))
-
-(def update-user
-  (partial update-entity :users))
-
-(def update-location
-  (partial update-entity :locations))
-
-(def update-visit
-  (partial update-entity :visits))
-
-(defn create-entity [entity data]
-  (let [id (:id data)]
-    (swap! db assoc-in [entity id] data)
-    (if (= entity :visits)
-      (cache/create-visit-cache id data))))
-
-(def create-user (partial create-entity :users))
-
-(def create-location (partial create-entity :locations))
-
-(def create-visit (partial create-entity :visits))
-
-#_(defn user-visits
-  [user-id opt]
-  (let [{:keys [fromDate
-                toDate
-                country
-                toDistance]} opt
-
-        visit-ids (cache/get-user-visits user-id)
-        visits (map get-visit visit-ids)
-
-        opt-preds (remove
-                   nil?
-
-                   [(when fromDate
-                      #(-> % :visited_at (> fromDate)))
-
-                    (when toDate
-                      #(-> % :visited_at (< toDate)))
-
-                    (when country
-                      #(some-> %
-                               :location get-location
-                               :country (= country)))
-
-                    (when toDistance
-                      #(some-> %
-                               :location get-location
-                               :distance (< toDistance)))])
-
-        visits (if (empty? opt-preds)
-                 visits
-                 (let [pred (apply every-pred opt-preds)]
-                   (filter pred visits)))]
-
-    (for [visit visits]
-      {:mark (:mark visit)
-       :visited_at (:visited_at visit)
-       :place (-> visit :location get-location :place)})))
-
-#_(defn location-visits
-  [location-id opt]
-  (let [{:keys [fromDate
-                toDate
-                fromAge
-                toAge
-                gender]} opt
-
-        location-pred #(-> % :location (= location-id))
-
-        opt-preds [(when fromDate
-                     #(-> % :visited_at (> fromDate)))
-
-                   (when toDate
-                     #(-> % :visited_at (< toDate)))
-
-                   (when fromAge
-                     #(some-> %
-                              :user
-                              get-user :birth_date
-                              time/get-age
-                              (> fromAge)))
-
-                   (when toAge
-                     #(some-> %
-                              :user
-                              get-user :birth_date
-                              time/get-age
-                              (< toAge)))
-
-                   (when gender
-                     #(some-> %
-                              :user
-                              get-user :gender
-                              (= gender)))]
-
-        main-pred (apply every-pred location-pred
-                         (remove nil? opt-preds))]
-
-    (filter main-pred (-> @db :visits vals))))
+     d/query)))

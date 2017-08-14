@@ -44,7 +44,7 @@
 (defn update-user
   [{fields :body} id]
   (if-let [_ (db/get-user id)]
-    (do (db/update-user id fields)
+    (do (db/upsert-entity :user (assoc fields :id id))
         (json-response {}))
     (json-response 404 {})))
 
@@ -52,10 +52,11 @@
   (-> update-user
       (wrap-spec-body :user/update)))
 
+;; todo check if need existance
 (defn update-location
   [{fields :body} id]
   (if-let [_ (db/get-location id)]
-    (do (db/update-location id fields)
+    (do (db/upsert-entity :location (assoc fields :id id))
         (json-response {}))
     (json-response 404 {})))
 
@@ -66,7 +67,7 @@
 (defn update-visit
   [{fields :body} id]
   (if-let [_ (db/get-visit id)]
-    (do (db/update-visit id fields)
+    (do (db/upsert-entity :visit (assoc fields :id id))
         (json-response {}))
     (json-response 404 {})))
 
@@ -76,7 +77,7 @@
 
 (defn create-user
   [{fields :body}]
-  (create-user fields)
+  (db/upsert-entity :user fields)
   (json-response {}))
 
 (def create-user
@@ -85,7 +86,7 @@
 
 (defn create-location
   [{fields :body}]
-  (create-location fields)
+  (db/upsert-entity :location fields)
   (json-response {}))
 
 (def create-location
@@ -94,7 +95,7 @@
 
 (defn create-visit
   [{fields :body}]
-  (create-visit fields)
+  (db/upsert-entity :visit fields)
   (json-response {}))
 
 (def create-visit
@@ -117,21 +118,8 @@
   [request]
   (let [id (-> request :params :id Integer/parseInt)
         opt (-> request :params)
-        visits (db/location-visits id opt)
-
-        ;; avg (if (empty? visits)
-        ;;       0
-        ;;       (let [sum (apply + (map :mark visits))
-        ;;             cnt (count visits)]
-        ;;         (/ sum cnt)))
-
-        ;; rounded (if (> avg 0)
-        ;;           (->> avg (format "%.5f") read-string)
-        ;;           avg)
-
-        ]
-
-    (json-response {:avg visits})))
+        avg (db/location-avg id opt)]
+    (json-response {:avg avg})))
 
 (def location-avg
   (-> location-avg

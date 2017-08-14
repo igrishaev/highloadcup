@@ -17,12 +17,6 @@
 (defn get-entity [data]
   (-> data keys first))
 
-(defn user-ref [id]
-  [:user/id id])
-
-(defn location-ref [id]
-  [:location/id id])
-
 (defn load-data [entity items]
 
   (case entity
@@ -45,8 +39,8 @@
     (db/transact
      (for [{id :id :as item} items]
        (-> item
-           (update :user user-ref)
-           (update :location location-ref)
+           (update :user db/get-user-ref)
+           (update :location db/get-location-ref)
            (dissoc :id)
            (assoc :visit/id id))))))
 

@@ -57,7 +57,9 @@
    :host (:server-host conf)
    :join? false})
 
-(mount/defstate server
+(mount/defstate
+  ^{:on-reload :noop}
+  server
   :start (run-jetty api-routes* (get-jetty-params))
   :stop (.stop server))
 
