@@ -215,6 +215,13 @@
       (is (= (:status res) 200))
       (is (= (:body res) {:avg 2.5}))))
 
+  (testing "avg: no such user"
+    (let [url (get-url "/locations/991991991/avg")
+          res (client/get url base-params)]
+
+      (is (= (:status res) 200))
+      (is (= (:body res) {:avg 0}))))
+
   (testing "avg: fromDate"
     (let [url (get-url "/locations/1/avg")
           params (assoc base-params
@@ -233,16 +240,14 @@
       (is (= (:status res) 200))
       (is (= (:body res) {:avg 0}))))
 
-  (testing "avg: no such user"
-    (let [url (get-url "/locations/991991991/avg")
-          res (client/get url base-params)]
+  (testing "avg: fromAge"
+    (let [url (get-url "/locations/1/avg")
+          params (assoc base-params
+                        :query-params {:fromDate "2147483647"})
+          res (client/get url params)]
 
       (is (= (:status res) 200))
       (is (= (:body res) {:avg 0}))))
-
-  ;; avg location exists
-
-
 
 
 

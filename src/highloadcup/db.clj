@@ -218,9 +218,27 @@
      (update :where conj
              '[(< ?visited-at ?toDate)]))
 
-    (or toAge gender)
+    (or fromAge toAge gender)
     (update :where conj
             '[?v :user ?user])
+
+    (or fromAge toAge)
+    (update :where conj
+            '[?user :birth_date ?birth-date])
+
+    fromAge
+    (->
+     (update :in conj '?fromAge)
+     (update :args conj (age-to-ts fromAge))
+     (update :where conj
+             '[(> ?birth-date ?fromAge)]))
+
+    toAge
+    (->
+     (update :in conj '?toAge)
+     (update :args conj (age-to-ts toAge))
+     (update :where conj
+             '[(< ?birth-date ?toAge)]))
 
     gender
     (->
@@ -228,14 +246,6 @@
      (update :args conj gender)
      (update :where conj
              '[?user :gender ?gender]))
-
-    toAge
-    (->
-     (update :in conj '?toTimestamp)
-     (update :args conj (age-to-ts toAge))
-     (update :where conj
-             '[?user :birth_date ?birth-date]
-             '[(< ?birth-date ?toTimestamp)]))
 
     true
     (->
