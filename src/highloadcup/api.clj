@@ -102,13 +102,18 @@
   (-> create-visit
       (wrap-spec-body :visit/create)))
 
+(defn fix-location [m]
+  (update m :location :place))
+
 (defn user-visits
   [request]
   (let [id (-> request :params :id read-string)
         opt (-> request :params)
         visits (db/user-visits id opt)]
     (json-response
-     {:visits (sort-by :visited_at visits)})))
+     {:visits (->> visits
+                   (sort-by :visited_at)
+                   (map fix-location))})))
 
 (def user-visits
   (-> user-visits

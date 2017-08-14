@@ -120,7 +120,7 @@
                    country
                    toDistance]}]
 
-  (cond-> '{:find [(pull ?v [* {:location [*]}])]
+  (cond-> '{:find [[(pull ?v [:mark :visited_at {:location [:place]}]) ...]]
             :in [$ ?user]
             :args []
             :where [[?v :user ?user]]}
