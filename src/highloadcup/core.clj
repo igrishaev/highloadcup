@@ -20,3 +20,8 @@
 (defn -main
   [& args]
   (start))
+
+;; todo:
+;; java start args
+;; unit tests
+;; make command to load data.zip

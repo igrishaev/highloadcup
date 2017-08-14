@@ -5,11 +5,6 @@
             [clojure.java.io :as io]
             [cheshire.core :as json]))
 
-
-(defn prepend-map [m ns]
-  (into {} (for [[k v] m]
-             [(keyword (name ns) (name k)) v])))
-
 (defn read-zip [path]
   (let [zip (java.util.zip.ZipFile. path)
         entries (-> zip .entries enumeration-seq)]
