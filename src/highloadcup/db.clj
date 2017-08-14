@@ -92,9 +92,9 @@
         (assoc :visit/id id)
         (cond->
           :user
-          (update :user db/get-user-ref)
+          (update :user get-user-ref)
           :location
-          (update :location db/get-location-ref)))))
+          (update :location get-location-ref)))))
 
 (defn upsert-entity
   [entity fields]
@@ -161,8 +161,9 @@
              '[?location :country ?country]))
 
     true
-    remap-query
-    d/query))
+    (->
+     remap-query
+     d/query)))
 
 (defn age-to-ts [to-age]
   (c/to-epoch (t/minus (t/now) (t/years to-age))))
