@@ -39,8 +39,6 @@
     (db/transact
      (for [{id :id :as item} items]
        (-> item
-           (update :user db/get-user-ref)
-           (update :location db/get-location-ref)
            (dissoc :id)
            (assoc :visit/id id))))))
 

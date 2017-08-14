@@ -25,3 +25,5 @@
 ;; make command to load data.zip
 ;; apply middleware selective
 ;; build in docker
+;; logging
+;; catch top exc

@@ -50,65 +50,26 @@
 (defn query [q & args]
   (apply d/q q (d/db conn) args))
 
-(defn get-entity [entity pattern id]
-  (let [pk (keyword entity "id")
+(defn get-entity [entity id]
+  (let [pk (keyword entity "id") ;; todo copypaste
         ref [pk id]
-        e (d/pull (d/db conn) pattern ref)]
+        e (d/pull (d/db conn) '[*] ref)]
     (when-let [id (pk e)]
       (-> e
           (dissoc pk :db/id)
           (assoc :id id)))))
 
-(def get-user (partial get-entity "user" '[*]))
+(def get-user (partial get-entity "user"))
 
-(def get-location (partial get-entity "location" '[*]))
+(def get-location (partial get-entity "location"))
 
-(defn visit-exists [id]
-  (:db/id
-   (d/pull (d/db conn) [:db/id] [:visit/id id])))
-
-(defn location-exists [id]
-  (:db/id
-   (d/pull (d/db conn) [:db/id] [:location/id id])))
-
-(defn get-visit [id]
-  (let [pattern '[* {:location [:location/id]
-                     :user [:user/id]}]
-        visit (get-entity "visit" pattern id)]
-    (-> visit
-        (update :location :location/id)
-        (update :user :user/id))))
-
-(defn get-entity-ref [entity id]
-  [(keyword (name entity) "id") id])
-
-(def get-user-ref (partial get-entity-ref :user))
-
-(def get-location-ref (partial get-entity-ref :location))
+(def get-visit (partial get-entity "visit"))
 
 (defn ->datum
   [entity {id :id :as fields}]
-  (case entity
-
-    :user
-    (-> fields
-        (dissoc :id)
-        (assoc :user/id id))
-
-    :location
-    (-> fields
-        (dissoc :id)
-        (assoc :location/id id))
-
-    :visit
-    (-> fields
-        (dissoc :id)
-        (assoc :visit/id id)
-        (cond->
-          :user
-          (update :user get-user-ref)
-          :location
-          (update :location get-location-ref)))))
+  (-> fields
+      (dissoc :id)
+      (assoc (keyword (name entity) "id") id)))
 
 (defn upsert-entity
   [entity fields]
@@ -126,19 +87,20 @@
                    country
                    toDistance]}]
 
-  (cond-> '{:find [[(pull ?v [:mark :visited_at {:location [:place]}]) ...]]
+  (cond-> '{:find [?mark ?visited-at ?place]
             :in [$ ?user]
             :args []
-            :where [[?v :user ?user]]}
+            :where [[?v :user ?user]
+                    [?v :mark ?mark]
+                    [?v :visited_at ?visited-at]
+                    [?v :location ?location-id]
+                    [?location :location/id ?location-id]
+                    [?location :place ?place]]}
 
     true
     (update :args conj
             (d/db conn)
-            [:user/id user-id]) ;; check resolve
-
-    (or fromDate toDate)
-    (update :where conj
-            '[?v :visited_at ?visited-at])
+            user-id)
 
     fromDate
     (->
@@ -154,10 +116,6 @@
      (update :where conj
              '[(< ?visited-at ?toDate)]))
 
-    (or toDistance country)
-    (update :where conj
-            '[?v :location ?location])
-
     toDistance
     (->
      (update :in conj '?toDistance)
@@ -171,7 +129,6 @@
      (update :in conj '?country)
      (update :args conj country)
      (update :where conj
-             '[?v :location ?location]
              '[?location :country ?country]))
 
     true

@@ -108,17 +108,18 @@
       (assoc :place place)
       (dissoc :location)))
 
+(defn make-visits-map [row]
+  (zipmap [:mark :visited_at :place] row))
+
 (defn user-visits
   [request]
-  (let [id (-> request :params :id read-string)]
-    (if (db/visit-exists id)
-      (let [opt (-> request :params)
-            visits (db/user-visits id opt)]
-        (json-response
-         {:visits (->> visits
-                       (sort-by :visited_at)
-                       (map fix-location-place))}))
-      (json-response {:visits []}))))
+  (let [id (-> request :params :id read-string)
+        opt (-> request :params)
+        visits (db/user-visits id opt)]
+    (json-response
+     {:visits (->> visits
+                   (map make-visits-map)
+                   (sort-by :visited_at))})))
 
 (def user-visits
   (-> user-visits
@@ -126,12 +127,10 @@
 
 (defn location-avg ;; todo round
   [request]
-  (let [id (-> request :params :id read-string)]
-    (if (db/location-exists id)
-      (let [opt (-> request :params)
-            avg (or (db/location-avg id opt) 0)]
-        (json-response {:avg avg}))
-      (json-response {:avg 0}))))
+  (let [id (-> request :params :id read-string)
+        opt (-> request :params)
+        avg (or (db/location-avg id opt) 0)]
+    (json-response {:avg avg})))
 
 (def location-avg
   (-> location-avg

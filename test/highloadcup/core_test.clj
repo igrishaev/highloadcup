@@ -110,18 +110,24 @@
               :mark 4
               :id 1}))))
 
-  ;; create/update visits
-
   (testing "getting a visit"
-    (let [url (get-url "/locations/1")
+    (let [url (get-url "/visits/1")
           res (client/get url base-params)]
       (is (= (:status res) 200))
       (is (= (:body res)
-             {:place "Набережная",
-              :country "Аргентина",
-              :city "Москва",
-              :distance 6,
+             {:location 32
+              :user 44
+              :visited_at 1103485742
+              :mark 4
               :id 1}))))
+
+  ;; create/update visits
+
+  (testing "no such visit"
+    (let [url (get-url "/locations/92535236453")
+          res (client/get url base-params)]
+      (is (= (:status res) 404))
+      (is (= (:body res) "{}"))))
 
   ;; create/update locations
 
@@ -244,6 +250,15 @@
     (let [url (get-url "/locations/1/avg")
           params (assoc base-params
                         :query-params {:fromDate "2147483647"})
+          res (client/get url params)]
+
+      (is (= (:status res) 200))
+      (is (= (:body res) {:avg 0}))))
+
+  #_(testing "avg: gender"
+    (let [url (get-url "/locations/1/avg")
+          params (assoc base-params
+                        :query-params {:gender "m"})
           res (client/get url params)]
 
       (is (= (:status res) 200))

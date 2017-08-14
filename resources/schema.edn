@@ -57,12 +57,13 @@
   :db/unique      :db.unique/identity}
 
  {:db/ident       :location
-  :db/valueType   :db.type/ref
+  :db/valueType   :db.type/long
+  :db/index       true
   :db/cardinality :db.cardinality/one}
 
  {:db/ident       :user
-  :db/valueType   :db.type/ref
-  :db/index       true ;; todo?
+  :db/valueType   :db.type/long
+  :db/index       true
   :db/cardinality :db.cardinality/one}
 
  {:db/ident       :visited_at
