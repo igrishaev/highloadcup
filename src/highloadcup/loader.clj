@@ -34,21 +34,26 @@
 
     :users
     (db/transact
-     (for [item items]
-       (prepend-map item :user)))
+     (for [{id :id :as item} items]
+       (-> item
+           (dissoc :id)
+           (assoc :user/id id))))
 
     :locations
     (db/transact
-     (for [item items]
-       (prepend-map item :location)))
+     (for [{id :id :as item} items]
+       (-> item
+           (dissoc :id)
+           (assoc :location/id id))))
 
     :visits
     (db/transact
-     (for [item items]
+     (for [{id :id :as item} items]
        (-> item
            (update :user user-ref)
            (update :location location-ref)
-           (prepend-map :visit))))))
+           (dissoc :id)
+           (assoc :visit/id id))))))
 
 (defn load-db [path]
   (doseq [stream (read-zip path)]

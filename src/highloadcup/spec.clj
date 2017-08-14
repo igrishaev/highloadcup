@@ -110,6 +110,7 @@
 
 (s/def :cfg/server-port int?)
 (s/def :cfg/server-host string?)
+(s/def :cfg/db-url string?)
 (s/def :cfg/zip-path string?)
 
 (s/def :cfg/params

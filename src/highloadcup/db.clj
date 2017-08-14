@@ -1,16 +1,25 @@
 (ns highloadcup.db
   (:require [highloadcup.time :as time]
+            [highloadcup.conf :refer [conf]]
+            [mount.core :as mount]
             [clojure.java.io :as io]
             [datomic.api :as d]
-            [highloadcup.cache :as cache]))
+            [highloadcup.cache :as cache])) ;; cache
 
-(def db-uri "datomic:mem://highloadcup")
+(mount/defstate conn
+  :start (let [db-url (:db-url conf)]
+           (d/create-database db-url)
+           (d/connect db-url))
+  :stop (do
+          (d/delete-database db-uri)
+          ;; close conn
+          nil))
 
-(d/delete-database db-uri)
+(defn start []
+  (mount/start #'conn))
 
-(d/create-database db-uri)
-
-(def conn (d/connect db-uri))
+(defn stop []
+  (mount/stop #'conn))
 
 (defn read-edn
   [filename]
@@ -29,7 +38,20 @@
 (defn query [q & args]
   (apply d/q q (d/db conn) args))
 
+(defn get-entity [entity id]
+  (let [pk (keyword entity "id")
+        ref [pk id]
+        e (d/pull (d/db conn) '[*] ref)]
+    (when-let [id (pk e)]
+      (-> e
+          (dissoc pk :db/id)
+          (assoc :id id)))))
 
+(def get-user (partial get-entity "user"))
+
+(def get-location (partial get-entity "location"))
+
+(def get-visit (partial get-entity "visit"))
 
 ;;;;;;;;;;;;;;;;
 
@@ -48,16 +70,16 @@
    :locations (-> @db :locations count)
    :visits (-> @db :visits count)})
 
-(defn get-entity [entity id]
+#_(defn get-entity [entity id]
   (get-in @db [entity id]))
 
-(def get-user
+#_(def get-user
   (partial get-entity :users))
 
-(def get-location
+#_(def get-location
   (partial get-entity :locations))
 
-(def get-visit
+#_(def get-visit
   (partial get-entity :visits))
 
 (defn update-entity [entity id data]
