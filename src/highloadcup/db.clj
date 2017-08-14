@@ -179,10 +179,11 @@
 (defn location-visits
   [location-id {:keys [fromDate toDate fromAge toAge gender]}]
 
-  (cond-> '{:find [?v]
+  (cond-> '{:find [(avg ?mark) .]
             :in [$ ?location]
             :args []
-            :where [[?v :location ?location]]}
+            :where [[?v :location ?location]
+                    [?v :mark ?mark]]}
 
     true
     (update :args conj
