@@ -8,6 +8,7 @@
 (defn start []
   (conf/start)
   (db/start)
+  (db/load-schema)
   (loader/auto-load)
   (server/start))
 

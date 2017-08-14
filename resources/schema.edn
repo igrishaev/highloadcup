@@ -62,6 +62,7 @@
 
  {:db/ident       :user
   :db/valueType   :db.type/ref
+  :db/index       true ;; todo?
   :db/cardinality :db.cardinality/one}
 
  {:db/ident       :visited_at

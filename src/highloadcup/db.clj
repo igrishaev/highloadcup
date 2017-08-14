@@ -6,20 +6,7 @@
             [datomic.api :as d]
             [highloadcup.cache :as cache])) ;; cache
 
-(mount/defstate conn
-  :start (let [db-url (:db-url conf)]
-           (d/create-database db-url)
-           (d/connect db-url))
-  :stop (do
-          (d/delete-database db-uri)
-          ;; close conn
-          nil))
-
-(defn start []
-  (mount/start #'conn))
-
-(defn stop []
-  (mount/stop #'conn))
+(declare conn)
 
 (defn read-edn
   [filename]
@@ -34,6 +21,27 @@
 
 (defn load-schema []
   (-> "schema.edn" read-edn transact))
+
+(defn on-start []
+  (let [db-url (:db-url conf)]
+    (d/create-database db-url)
+    (d/connect db-url)))
+
+(defn on-stop []
+  (let [db-url (:db-url conf)]
+    (d/delete-database db-url)
+    ;; close conn
+    nil))
+
+(mount/defstate conn
+  :start (on-start)
+  :stop (on-stop))
+
+(defn start []
+  (mount/start #'conn))
+
+(defn stop []
+  (mount/stop #'conn))
 
 (defn query [q & args]
   (apply d/q q (d/db conn) args))
@@ -53,9 +61,200 @@
 
 (def get-visit (partial get-entity "visit"))
 
+(defn remap-query
+  [{args :args :as m}]
+  {:query (dissoc m :args)
+   :args args})
+
+(defn user-visits [user-id {:keys [fromDate
+                                   toDate
+                                   country
+                                   toDistance]}]
+  #_(d/pull (d/db conn) '[{:_user [*]} ] [:user/id user-id])
+  #_(d/pull (d/db conn) '[:_visits] [:user/id user-id])
+
+  #_(query '[:find (pull ?e [*])
+           :in $ ?user-ref ?fromDate ?toDate ?country ?toDistance
+           :where
+           [?e :user ?user-ref]
+
+           [?e :visited_at ?visited-at]
+           [(> ?visited-at ?fromDate)]
+           [(< ?visited-at ?toDate)]
+
+           [?e :location ?location]
+           [?location :country ?country]
+
+           [?location :distance ?distance]
+           [(< ?distance ?toDistance)]]
+
+         [:user/id user-id]
+         111111111
+         999999999
+         "test"
+         9999)
+
+  (cond-> '{:find [(pull ?e [* {:location [*]}])]
+            :in [$ ?user-ref]
+            :args []
+            :where [[?e :user ?user-ref]]}
+
+    (or fromDate toDate)
+    (->
+     (update :where conj
+             '[?e :visited_at ?visited-at]))
+
+    fromDate
+    (->
+     (update :in conj '?fromDate)
+     (update :args conj fromDate)
+     (update :where conj
+             '[(> ?visited-at ?fromDate)]))
+
+    toDate
+    (->
+     (update :in conj '?toDate)
+     (update :args conj toDate)
+     (update :where conj
+             '[(< ?visited-at ?toDate)]))
+
+    (or toDistance country)
+    (->
+     (update :where conj
+             '[?e :location ?location]))
+
+    toDistance
+    (->
+     (update :in conj '?toDistance)
+     (update :args conj toDistance)
+     (update :where conj
+              '[?location :distance ?distance]
+              '[(< ?distance ?toDistance)]))
+
+    country
+    (->
+     (update :in conj '?country)
+     (update :args conj country)
+     (update :where conj
+             '[?e :location ?location]
+             '[?location :country ?country]))
+
+    true
+    remap-query
+)
+
+
+  #_(query '[:find (pull ?e [* {:location [*]}])
+           :in $ ?user-ref ?country ;; ?fromDate ?toDate ?country ?toDistance
+           :where
+           [?e :user ?user-ref]
+
+           ;; [?e :visited_at ?visited-at]
+           ;; [(> ?visited-at ?fromDate)]
+           ;; [(< ?visited-at ?toDate)]
+
+           [?e :location ?location]
+           [?location :country ?country]
+
+           ;; [?location :distance ?distance]
+           ;; [(< ?distance ?toDistance)]
+                         ]
+
+         [:user/id 1]
+         "Австралия"
+         ;; 111111111
+         ;; 999999999
+         ;; "test"
+         ;; 9999
+         )
+
+  )
+
+
+(defn location-visits
+  [location-id {:keys [fromDate toDate fromAge toAge gender]}]
+
+  (cond-> '{:find [?e]
+            :in [$ ?location-ref]
+            :where
+            [e? :location ?location-ref]}
+
+    (or fromDate toDate)
+    (->
+     (update :where conj
+             '[?e :visited_at ?visited-at]))
+
+    fromDate
+    (->
+     (update :in conj '?fromDate)
+     (update :where conj
+             '[(> ?visited-at ?fromDate)]))
+
+    toDate
+    (->
+     (update :in conj '?toDistance)
+     (update :where conj
+             '[(< ?visited-at ?fromDate)]))
+
+    (or toAge gender)
+    (->
+     (update :where conj
+             '[?e :user ?user]))
+
+    gender
+    (->
+     (update :in conj '?gender)
+     (update :where conj
+             '[?user :gender ?gender]))
+
+    toAge
+    (->
+     (update :in conj '?toAge)
+     (update :where conj
+             '[?user :birth_date ?toAge]))
+
+    )
+
+  #_(let [{:keys [fromDate
+                toDate
+                fromAge
+                toAge
+                gender]} opt
+
+        location-pred #(-> % :location (= location-id))
+
+        opt-preds [(when fromDate
+                     #(-> % :visited_at (> fromDate)))
+
+                   (when toDate
+                     #(-> % :visited_at (< toDate)))
+
+                   (when fromAge
+                     #(some-> %
+                              :user
+                              get-user :birth_date
+                              time/get-age
+                              (> fromAge)))
+
+                   (when toAge
+                     #(some-> %
+                              :user
+                              get-user :birth_date
+                              time/get-age
+                              (< toAge)))
+
+                   (when gender
+                     #(some-> %
+                              :user
+                              get-user :gender
+                              (= gender)))]
+
+        main-pred (apply every-pred location-pred
+                         (remove nil? opt-preds))]
+
+    (filter main-pred (-> @db :visits vals))))
+
 ;;;;;;;;;;;;;;;;
-
-
 
 
 
@@ -110,7 +309,7 @@
 
 (def create-visit (partial create-entity :visits))
 
-(defn user-visits
+#_(defn user-visits
   [user-id opt]
   (let [{:keys [fromDate
                 toDate
@@ -149,7 +348,7 @@
        :visited_at (:visited_at visit)
        :place (-> visit :location get-location :place)})))
 
-(defn location-visits
+#_(defn location-visits
   [location-id opt]
   (let [{:keys [fromDate
                 toDate
