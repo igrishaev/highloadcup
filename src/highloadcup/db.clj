@@ -66,12 +66,10 @@
 (defn get-visit [id]
   (let [pattern '[* {:location [:location/id]
                      :user [:user/id]}]
-        visit (get-entity "visit" pattern id)
-        {{location-id :location/id} :location
-         {user-id :user/id} :user} visit]
-    (assoc visit
-           :location location-id
-           :user user-id)))
+        visit (get-entity "visit" pattern id)]
+    (-> visit
+        (update :location :location/id)
+        (update :user :user/id))))
 
 (defn get-entity-ref [entity id]
   [(keyword (name entity) "id") id])

@@ -102,8 +102,11 @@
   (-> create-visit
       (wrap-spec-body :visit/create)))
 
-(defn fix-location [m]
-  (update m :location :place))
+(defn fix-location-place
+  [{{place :place} :location :as m}]
+  (-> m
+      (assoc :place place)
+      (dissoc :location)))
 
 (defn user-visits
   [request]
@@ -113,7 +116,7 @@
     (json-response
      {:visits (->> visits
                    (sort-by :visited_at)
-                   (map fix-location))})))
+                   (map fix-location-place))})))
 
 (def user-visits
   (-> user-visits

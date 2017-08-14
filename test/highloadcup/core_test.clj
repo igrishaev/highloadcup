@@ -98,6 +98,37 @@
       (is (= (:body res)
              (assoc new-user :email "new@test.com")))))
 
+  (testing "getting a visit"
+    (let [url (get-url "/visits/1")
+          res (client/get url base-params)]
+      (is (= (:status res) 200))
+      (is (= (:body res)
+             {:location 32
+              :user 44
+              :visited_at 1103485742
+              :mark 4
+              :id 1}))))
+
+  ;; create/update visits
+
+  (testing "user visits"
+    (let [url (get-url "/users/1/visits")
+          res (client/get url base-params)
+          visits (-> res :body :visits)
+          dates (map :visited_at visits)]
+
+      (is (= (:status res) 200))
+      (is (= (count visits) 40))
+      (is (= (first visits)
+             {:mark 3
+              :visited_at 965970299
+              :place "Фонарь"}))
+
+      (is (= (-> dates sort vec)
+             (-> dates vec)))))
+
+  ;; test vists filters
+
 
 
 
