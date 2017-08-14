@@ -20,4 +20,6 @@
   :uberjar-name "highloadcup.jar"
 
   :profiles {:uberjar {:aot :all}
-             :dev {:resource-paths ["env/dev/resources"]}})
+             :dev {:resource-paths ["env/dev/resources"]
+                   :dependencies [[clj-http "3.5.0"]]}
+             :test {:resource-paths ["env/dev/resources"]}})

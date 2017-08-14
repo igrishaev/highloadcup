@@ -1,21 +1,18 @@
 (ns highloadcup.core
   (:gen-class)
-  (:require [highloadcup.conf :as conf]
-            [highloadcup.db :as db]
-            [highloadcup.server :as server]
-            [highloadcup.loader :as loader]))
+  (:require [highloadcup.conf :refer [conf]]
+            [highloadcup.db :refer [conn] :as db]
+            [highloadcup.server :refer [server]]
+            [highloadcup.loader :as loader]
+            [mount.core :as mount]))
 
 (defn start []
-  (conf/start)
-  (db/start)
+  (mount/start #'conf #'conn #'server)
   (db/load-schema)
-  (loader/auto-load)
-  (server/start))
+  (loader/auto-load))
 
 (defn stop []
-  (conf/stop)
-  (db/stop)
-  (server/stop))
+  (mount/stop #'conf #'conn #'server))
 
 (defn -main
   [& args]
@@ -24,6 +21,7 @@
 ;; todo:
 ;; java start args
 ;; unit tests
+;; docker tmp path r/o
 ;; make command to load data.zip
 ;; apply middleware selective
 ;; build in docker
