@@ -190,14 +190,14 @@
      (update :in conj '?fromAge)
      (update :args conj (age-to-ts fromAge))
      (update :where conj
-             '[(> ?birth-date ?fromAge)]))
+             '[(< ?birth-date ?fromAge)]))
 
     toAge
     (->
      (update :in conj '?toAge)
      (update :args conj (age-to-ts toAge))
      (update :where conj
-             '[(< ?birth-date ?toAge)]))
+             '[(> ?birth-date ?toAge)]))
 
     gender
     (->

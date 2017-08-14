@@ -30,3 +30,5 @@
 ;; add tests for update visits
 ;; try http-kit
 ;; try openjdk
+;; gc config
+;; warmup
