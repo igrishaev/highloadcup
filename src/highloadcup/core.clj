@@ -29,3 +29,4 @@
 ;; drop cache ns
 ;; add tests for update visits
 ;; try http-kit
+;; try openjdk
