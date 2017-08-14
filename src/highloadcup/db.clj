@@ -2,6 +2,8 @@
   (:require [highloadcup.time :as time]
             [highloadcup.conf :refer [conf]]
             [mount.core :as mount]
+            [clj-time.core :as t]
+            [clj-time.coerce :as c]
             [clojure.java.io :as io]
             [datomic.api :as d]
             [highloadcup.cache :as cache])) ;; cache
@@ -171,88 +173,64 @@
   )
 
 
+(defn age-to-ts [to-age]
+  (c/to-epoch (t/minus (t/now) (t/years to-age))))
+
 (defn location-visits
   [location-id {:keys [fromDate toDate fromAge toAge gender]}]
 
-  (cond-> '{:find [?e]
-            :in [$ ?location-ref]
-            :where
-            [e? :location ?location-ref]}
+  (cond-> '{:find [?v]
+            :in [$ ?location]
+            :args []
+            :where [[?v :location ?location]]}
+
+    true
+    (update :args conj
+            (d/db conn)
+            [:location/id location-id]) ;; check resolve
 
     (or fromDate toDate)
-    (->
-     (update :where conj
-             '[?e :visited_at ?visited-at]))
+    (update :where conj
+            '[?v :visited_at ?visited-at])
 
     fromDate
     (->
      (update :in conj '?fromDate)
+     (update :args conj fromDate)
      (update :where conj
              '[(> ?visited-at ?fromDate)]))
 
     toDate
     (->
      (update :in conj '?toDistance)
+     (update :args conj toDate)
      (update :where conj
              '[(< ?visited-at ?fromDate)]))
 
     (or toAge gender)
-    (->
-     (update :where conj
-             '[?e :user ?user]))
+    (update :where conj
+            '[?v :user ?user])
 
     gender
     (->
      (update :in conj '?gender)
+     (update :args conj gender)
      (update :where conj
              '[?user :gender ?gender]))
 
     toAge
     (->
-     (update :in conj '?toAge)
+     (update :in conj '?toTimestamp)
+     (update :args conj (age-to-ts toAge))
      (update :where conj
-             '[?user :birth_date ?toAge]))
+             '[?user :birth_date ?birth-date]
+             '[(< ?birth-date ?toTimestamp)]))
 
-    )
-
-  #_(let [{:keys [fromDate
-                toDate
-                fromAge
-                toAge
-                gender]} opt
-
-        location-pred #(-> % :location (= location-id))
-
-        opt-preds [(when fromDate
-                     #(-> % :visited_at (> fromDate)))
-
-                   (when toDate
-                     #(-> % :visited_at (< toDate)))
-
-                   (when fromAge
-                     #(some-> %
-                              :user
-                              get-user :birth_date
-                              time/get-age
-                              (> fromAge)))
-
-                   (when toAge
-                     #(some-> %
-                              :user
-                              get-user :birth_date
-                              time/get-age
-                              (< toAge)))
-
-                   (when gender
-                     #(some-> %
-                              :user
-                              get-user :gender
-                              (= gender)))]
-
-        main-pred (apply every-pred location-pred
-                         (remove nil? opt-preds))]
-
-    (filter main-pred (-> @db :visits vals))))
+    true
+    (->
+     remap-query
+     d/query
+)))
 
 ;;;;;;;;;;;;;;;;
 
