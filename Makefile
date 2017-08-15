@@ -2,7 +2,7 @@
 PROJECT := highloadcup
 REPO_HOST := stor.highloadcup.ru
 REPO_PATH := travels/fancy_yak
-TAG := 0.1
+TAG := sqlite
 
 repl:
 	lein repl
