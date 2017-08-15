@@ -11,7 +11,9 @@
   (mount/start #'conf #'conn #'server)
   (db/load-schema)
   (future
+    (println "loading db")
     (loader/auto-load)
+    (println "warmup " (:warmup-ratio conf))
     (warmup/run (:warmup-ratio conf))))
 
 (defn stop []
