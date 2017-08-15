@@ -28,6 +28,7 @@
 ;; logging
 ;; catch top exc
 ;; add tests for update visits
-;; try openjdk
 ;; gc config
+;; try sqlite
+;; try agents
 ;; check existance when update
