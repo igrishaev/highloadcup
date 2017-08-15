@@ -1,6 +1,9 @@
 (ns highloadcup.api
   (:require [highloadcup.db :as db]
-            [highloadcup.spec :as spec]))
+            [highloadcup.spec :as spec]
+            [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.keyword-params
+             :refer [wrap-keyword-params]]))
 
 (defn json-response
   ([body]
@@ -125,7 +128,9 @@
 
 (def user-visits
   (-> user-visits
-      (wrap-spec-params :opt.visits/params)))
+      (wrap-spec-params :opt.visits/params)
+      wrap-keyword-params
+      wrap-params))
 
 (defn smart-round [val]
   (read-string (format "%.5f" val)))
@@ -142,4 +147,6 @@
 
 (def location-avg
   (-> location-avg
-      (wrap-spec-params :opt.avg/params)))
+      (wrap-spec-params :opt.avg/params)
+      wrap-keyword-params
+      wrap-params))

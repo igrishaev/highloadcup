@@ -6,9 +6,6 @@
             [highloadcup.api :as api]
             [mount.core :as mount]
             [org.httpkit.server :refer [run-server]]
-            [ring.middleware.keyword-params
-             :refer [wrap-keyword-params]]
-            [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.json :refer
              [wrap-json-response wrap-json-body]]))
 
@@ -47,8 +44,6 @@
 
 (def api-routes*
   (-> api-routes
-      wrap-keyword-params
-      wrap-params
       (wrap-json-body {:keywords? true})
       wrap-json-response))
 
