@@ -109,14 +109,12 @@
                    :opt.avg/gender]))
 
 (s/def :cfg/server-port int?)
-(s/def :cfg/server-threads int?)
-(s/def :cfg/server-ip string?)
+(s/def :cfg/server-host string?)
 (s/def :cfg/db-url string?)
 (s/def :cfg/zip-path string?)
 
 (s/def :cfg/params
   (s/keys :req-un [:cfg/server-port
-                   :cfg/server-threads
-                   :cfg/server-ip
+                   :cfg/server-host
                    :cfg/db-url
                    :cfg/zip-path]))
