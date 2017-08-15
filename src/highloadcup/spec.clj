@@ -111,10 +111,12 @@
 (s/def :cfg/server-port int?)
 (s/def :cfg/server-host string?)
 (s/def :cfg/db-url string?)
+(s/def :cfg/warmup-ratio int?)
 (s/def :cfg/zip-path string?)
 
 (s/def :cfg/params
   (s/keys :req-un [:cfg/server-port
                    :cfg/server-host
                    :cfg/db-url
+                   :cfg/warmup-ratio
                    :cfg/zip-path]))

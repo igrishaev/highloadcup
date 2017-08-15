@@ -10,6 +10,7 @@
                  [cheshire "5.7.1"]
                  [compojure "1.6.0"]
                  [mount "0.1.11"]
+                 [clj-http "3.5.0"]
                  [ring/ring-jetty-adapter "1.6.2"]
                  [ring/ring-json "0.4.0"]]
 
@@ -20,6 +21,5 @@
   :uberjar-name "highloadcup.jar"
 
   :profiles {:uberjar {:aot :all}
-             :dev {:resource-paths ["env/dev/resources"]
-                   :dependencies [[clj-http "3.5.0"]]}
+             :dev {:resource-paths ["env/dev/resources"]}
              :test {:resource-paths ["env/dev/resources"]}})
