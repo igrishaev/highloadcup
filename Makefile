@@ -17,7 +17,7 @@ uberjar:
 uberjar-run:
 	source .env && java -jar target/uberjar/highloadcup.jar
 
-docker-build: uberjar
+docker-build:
 	docker build --no-cache -t $(PROJECT):$(TAG) .
 
 docker-run:
@@ -31,3 +31,5 @@ docker-push:
 
 docker-auth:
 	docker login $(REPO_HOST)
+
+deploy: uberjar docker-build docker-tag docker-push

@@ -1,4 +1,4 @@
-FROM java:8
+FROM frolvlad/alpine-oraclejdk8
 
 ENV SERVER_PORT 80
 ENV SERVER_HOST "0.0.0.0"
@@ -11,4 +11,4 @@ EXPOSE 80
 WORKDIR /
 COPY target/uberjar/highloadcup.jar .
 
-CMD ["java", "-jar", "highloadcup.jar"]
+CMD ["java", "-server", "-da", "-dsa", "-Xmx4g", "-Xms4g", "-XX:+UseCompressedOops", "-XX:+DoEscapeAnalysis", "-XX:+UseConcMarkSweepGC", "-jar", "highloadcup.jar"]
