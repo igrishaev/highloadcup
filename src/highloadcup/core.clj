@@ -10,8 +10,9 @@
 (defn start []
   (mount/start #'conf #'conn #'server)
   (db/load-schema)
-  (loader/auto-load)
-  (warmup/run (:warmup-ratio conf)))
+  (future
+    (loader/auto-load)
+    (warmup/run (:warmup-ratio conf))))
 
 (defn stop []
   (mount/stop #'conf #'conn #'server))
@@ -21,7 +22,6 @@
   (start))
 
 ;; todo:
-;; db load and warmup into futures
 ;; java start args
 ;; make command to load data.zip
 ;; build in docker
