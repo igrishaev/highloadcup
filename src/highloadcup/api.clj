@@ -118,7 +118,7 @@
   (let [id (-> request :params :id read-string)]
     (if (db/get-user id)
       (let [opt (-> request :params)
-            visits (db/user-visits id opt)]
+            visits [] #_(db/user-visits id opt)]
         (json-response
          {:visits (->> visits
                        (map make-visits-map)
@@ -139,7 +139,7 @@
   (let [id (-> request :params :id read-string)]
     (if (db/get-location id)
       (let [opt (-> request :params)
-            res (db/location-avg id opt)
+            res 0 #_(db/location-avg id opt)
             avg (if res (smart-round res) 0)]
         (json-response {:avg avg}))
       (json-response 404 {}))))

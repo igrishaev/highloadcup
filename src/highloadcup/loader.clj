@@ -22,25 +22,16 @@
   (case entity
 
     :users
-    (db/transact
-     (for [{id :id :as item} items]
-       (-> item
-           (dissoc :id)
-           (assoc :user/id id))))
+    (doseq [item items]
+      (db/create-user item))
 
     :locations
-    (db/transact
-     (for [{id :id :as item} items]
-       (-> item
-           (dissoc :id)
-           (assoc :location/id id))))
+    (doseq [item items]
+      (db/create-location item))
 
     :visits
-    (db/transact
-     (for [{id :id :as item} items]
-       (-> item
-           (dissoc :id)
-           (assoc :visit/id id))))))
+    (doseq [item items]
+      (db/create-visit item))))
 
 (defn load-db [path]
   (doseq [stream (read-zip path)]
