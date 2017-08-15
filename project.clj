@@ -10,7 +10,7 @@
                  [cheshire "5.7.1"]
                  [compojure "1.6.0"]
                  [mount "0.1.11"]
-                 [ring/ring-jetty-adapter "1.6.2"]
+                 [http-kit "2.2.0"]
                  [ring/ring-json "0.4.0"]]
 
   :main ^:skip-aot highloadcup.core

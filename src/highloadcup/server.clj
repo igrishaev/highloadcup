@@ -5,7 +5,7 @@
             [highloadcup.conf :refer [conf]]
             [highloadcup.api :as api]
             [mount.core :as mount]
-            [ring.adapter.jetty :refer [run-jetty]]
+            [org.httpkit.server :refer [run-server]]
             [ring.middleware.keyword-params
              :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
@@ -52,16 +52,16 @@
       (wrap-json-body {:keywords? true})
       wrap-json-response))
 
-(defn get-jetty-params []
+(defn get-server-opt []
   {:port (:server-port conf)
-   :host (:server-host conf)
-   :join? false})
+   :ip (:server-ip conf)
+   :thread (:server-threads conf)})
 
 (mount/defstate
   ^{:on-reload :noop}
   server
-  :start (run-jetty api-routes* (get-jetty-params))
-  :stop (.stop server))
+  :start (run-server #'api-routes* (get-server-opt))
+  :stop (server :timeout 100))
 
 (defn start []
   (mount/start #'server))
