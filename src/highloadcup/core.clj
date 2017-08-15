@@ -20,7 +20,6 @@
 
 ;; todo:
 ;; java start args
-;; docker tmp path r/o
 ;; make command to load data.zip
 ;; apply middleware selective
 ;; build in docker

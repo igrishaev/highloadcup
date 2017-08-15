@@ -17,7 +17,7 @@ docker-build: uberjar
 	docker build --no-cache -t $(PROJECT):$(TAG) .
 
 docker-run:
-	docker run -it --rm -p 8080:80 -v $(CURDIR)/tmp/data:/tmp/data $(PROJECT):$(TAG)
+	docker run -it --rm -p 8080:80 -v $(CURDIR)/tmp/data:/tmp/data:ro $(PROJECT):$(TAG)
 
 docker-tag:
 	docker tag $(PROJECT):$(TAG) $(REPO_HOST)/$(REPO_PATH)
