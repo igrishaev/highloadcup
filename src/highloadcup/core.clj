@@ -21,6 +21,7 @@
   (start))
 
 ;; todo:
+;; db load and warmup into futures
 ;; java start args
 ;; make command to load data.zip
 ;; build in docker
