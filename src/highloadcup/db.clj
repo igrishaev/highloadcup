@@ -1,12 +1,10 @@
 (ns highloadcup.db
-  (:require [highloadcup.time :as time]
-            [highloadcup.conf :refer [conf]]
+  (:require [highloadcup.conf :refer [conf]]
             [mount.core :as mount]
             [clj-time.core :as t]
             [clj-time.coerce :as c]
             [clojure.java.io :as io]
-            [datomic.api :as d]
-            [highloadcup.cache :as cache])) ;; cache
+            [datomic.api :as d]))
 
 (declare conn)
 

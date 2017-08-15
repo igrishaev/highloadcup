@@ -25,7 +25,6 @@
 ;; build in docker
 ;; logging
 ;; catch top exc
-;; drop cache ns
 ;; add tests for update visits
 ;; try openjdk
 ;; gc config
