@@ -10,18 +10,15 @@
 (defn start []
   (mount/start #'conf #'conn #'server)
   (db/load-schema)
-  (future
-    (println "loading db")
-    (loader/auto-load)
-    (println "warmup " (:warmup-ratio conf))
-    (warmup/run (:warmup-ratio conf))))
+  (loader/auto-load))
 
 (defn stop []
   (mount/stop #'conf #'conn #'server))
 
 (defn -main
   [& args]
-  (start))
+  (start)
+  (warmup/run (:warmup-ratio conf)))
 
 ;; todo:
 ;; java start args
@@ -31,5 +28,5 @@
 ;; catch top exc
 ;; add tests for update visits
 ;; try openjdk
-;; make common functions
 ;; gc config
+;; check existance when update

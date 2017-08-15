@@ -7,6 +7,10 @@ TAG := 0.1
 repl:
 	lein repl
 
+.PHONY: test
+test:
+	lein test
+
 uberjar:
 	lein uberjar
 

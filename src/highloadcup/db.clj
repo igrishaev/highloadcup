@@ -74,6 +74,18 @@
   (let [datum (->datum entity fields)]
     (transact [datum])))
 
+(def create-user (partial upsert-entity :user))
+(def create-visit (partial upsert-entity :visit))
+(def create-location (partial upsert-entity :location))
+
+(defn update-entity
+  [entity id fields]
+  (upsert-entity entity (assoc fields :id id)))
+
+(def update-user (partial update-entity :user))
+(def update-location (partial update-entity :location))
+(def update-visit (partial update-entity :visit))
+
 (defn remap-query
   [{args :args :as m}]
   {:query (dissoc m :args)

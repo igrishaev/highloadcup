@@ -47,7 +47,7 @@
 (defn update-user
   [{fields :body} id]
   (if-let [_ (db/get-user id)]
-    (do (db/upsert-entity :user (assoc fields :id id))
+    (do (db/update-user id fields)
         (json-response {}))
     (json-response 404 {})))
 
@@ -55,11 +55,10 @@
   (-> update-user
       (wrap-spec-body :user/update)))
 
-;; todo check if need existance
 (defn update-location
   [{fields :body} id]
   (if-let [_ (db/get-location id)]
-    (do (db/upsert-entity :location (assoc fields :id id))
+    (do (db/update-location id fields)
         (json-response {}))
     (json-response 404 {})))
 
@@ -70,7 +69,7 @@
 (defn update-visit
   [{fields :body} id]
   (if-let [_ (db/get-visit id)]
-    (do (db/upsert-entity :visit (assoc fields :id id))
+    (do (db/update-visit id fields)
         (json-response {}))
     (json-response 404 {})))
 
@@ -80,7 +79,7 @@
 
 (defn create-user
   [{fields :body}]
-  (db/upsert-entity :user fields)
+  (db/create-user fields)
   (json-response {}))
 
 (def create-user
@@ -89,7 +88,7 @@
 
 (defn create-location
   [{fields :body}]
-  (db/upsert-entity :location fields)
+  (db/create-location fields)
   (json-response {}))
 
 (def create-location
@@ -98,7 +97,7 @@
 
 (defn create-visit
   [{fields :body}]
-  (db/upsert-entity :visit fields)
+  (db/create-visit fields)
   (json-response {}))
 
 (def create-visit
