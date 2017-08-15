@@ -27,7 +27,7 @@ create table visits (
     mark       integer not null
 );
 
--- :name get-user-visits :n
+-- :name get-user-visits :?
 select
     v.mark,
     v.visited_at,
@@ -47,6 +47,33 @@ where
     /*~ ) ~*/
     /*~ (when (:country params) */
     and l.country = :country
+    /*~ ) ~*/
+order by
+    v.visited_at;
+
+-- :name get-location-avg :? :1
+select
+    avg(v.mark) as avg
+from visits v
+/*~ (when (or (:fromAge params) (:toAge params) (:gender params)) */
+join users u on v.user = u.id
+/*~ ) ~*/
+where
+    v.location = :location_id
+    /*~ (when (:fromDate params) */
+    and v.visited_at > :fromDate
+    /*~ ) ~*/
+    /*~ (when (:toDate params) */
+    and v.visited_at < :toDate
+    /*~ ) ~*/
+    /*~ (when (:fromAge params) */
+    and u.birth_date < :fromAge
+    /*~ ) ~*/
+    /*~ (when (:toAge params) */
+    and u.birth_date > :toAge
+    /*~ ) ~*/
+    /*~ (when (:gender params) */
+    and u.gender = :gender
     /*~ ) ~*/
 order by
     v.visited_at;

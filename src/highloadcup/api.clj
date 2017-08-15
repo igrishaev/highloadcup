@@ -129,16 +129,24 @@
       wrap-params))
 
 (defn smart-round [val]
-  (read-string (format "%.5f" val)))
+  (if val
+    (read-string (format "%.5f" val))
+    0))
 
 (defn location-avg
   [request]
   (let [id (-> request :params :id read-string)]
     (if (db/get-location id)
-      (let [opt (-> request :params)
-            res 0 #_(db/location-avg id opt)
-            avg (if res (smart-round res) 0)]
-        (json-response {:avg avg}))
+      (let [params (:params request)
+            opt (cond-> params
+                  (:fromAge params)
+                  (update :fromAge db/age-to-ts)
+                  (:toAge params)
+                  (update :toAge db/age-to-ts))
+            res (db/get-location-avg
+                 db/conn
+                 (merge {:location_id id} opt))]
+        (json-response (update res :avg smart-round)))
       (json-response 404 {}))))
 
 (def location-avg

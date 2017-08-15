@@ -82,9 +82,8 @@
       (is (= (:body res) "{}"))))
 
   (testing "updating a user"
-    (let [url (get-url "/users/new")
-          user (assoc new-user
-                      :email "new@test.com")
+    (let [url (get-url "/users/1")
+          user {:email "new@test.com"}
           params (assoc base-params
                         :form-params user
                         :content-type :json)
@@ -92,12 +91,12 @@
       (is (= (:status res) 200))
       (is (= (:body res) {}))))
 
-  (testing "getting a new user"
-    (let [url (get-url (format "/users/%s" (:id new-user)))
+  (testing "getting an updated user"
+    (let [url (get-url "/users/1")
           res (client/get url base-params)]
       (is (= (:status res) 200))
-      (is (= (:body res)
-             (assoc new-user :email "new@test.com")))))
+      (is (= (-> res :body :email)
+             "new@test.com"))))
 
   (testing "getting a visit"
     (let [url (get-url "/visits/1")
