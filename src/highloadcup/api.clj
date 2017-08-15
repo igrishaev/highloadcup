@@ -110,19 +110,16 @@
       (assoc :place place)
       (dissoc :location)))
 
-(defn make-visits-map [row]
-  (zipmap [:mark :visited_at :place] row))
-
 (defn user-visits
   [request] ;; todo exists fn
   (let [id (-> request :params :id read-string)]
-    (if (db/get-user id)
+    (if (db/get-user id) ;; exists
       (let [opt (-> request :params)
-            visits [] #_(db/user-visits id opt)]
+            visits (db/get-user-visits
+                    db/conn
+                    (merge {:user_id id} opt))]
         (json-response
-         {:visits (->> visits
-                       (map make-visits-map)
-                       (sort-by :visited_at))}))
+         {:visits visits}))
       (json-response 404 {}))))
 
 (def user-visits
