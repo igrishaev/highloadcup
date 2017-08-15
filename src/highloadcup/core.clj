@@ -21,6 +21,7 @@
   (warmup/run (:warmup-ratio conf)))
 
 ;; todo:
+;; do not deref transaction
 ;; java start args
 ;; make command to load data.zip
 ;; build in docker
