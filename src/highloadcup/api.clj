@@ -134,12 +134,7 @@
   [request]
   (let [id (-> request :params :id read-string)]
     (if (db/get-location id)
-      (let [params (:params request)
-            opt (cond-> params
-                  (:fromAge params)
-                  (update :fromAge db/age-to-ts)
-                  (:toAge params)
-                  (update :toAge db/age-to-ts))
+      (let [opt (:params request)
             avg (db/get-location-avg id opt)]
         (json-response {:avg (smart-round avg)}))
       (json-response 404 {}))))
