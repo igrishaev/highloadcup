@@ -20,11 +20,11 @@
   (get-in @conn [entity id]))
 
 (defn create-entity [table {id :id :as fields}]
-  (send conn assoc-in [table id] fields))
+  (send-off conn assoc-in [table id] fields))
 
 (defn update-entity
   [table id fields]
-  (send conn update-in [table id] merge fields))
+  (send-off conn update-in [table id] merge fields))
 
 (def get-user (partial get-entity :users))
 (def get-location (partial get-entity :locations))
