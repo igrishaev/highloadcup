@@ -115,11 +115,8 @@
   (let [id (-> request :params :id read-string)]
     (if (db/get-user id) ;; exists
       (let [opt (-> request :params)
-            visits (db/get-user-visits
-                    db/conn
-                    (merge {:user_id id} opt))]
-        (json-response
-         {:visits visits}))
+            visits (db/get-user-visits id opt)]
+        (json-response {:visits visits}))
       (json-response 404 {}))))
 
 (def user-visits
@@ -143,10 +140,8 @@
                   (update :fromAge db/age-to-ts)
                   (:toAge params)
                   (update :toAge db/age-to-ts))
-            res (db/get-location-avg
-                 db/conn
-                 (merge {:location_id id} opt))]
-        (json-response (update res :avg smart-round)))
+            avg (db/get-location-avg id opt)]
+        (json-response {:avg (smart-round avg)}))
       (json-response 404 {}))))
 
 (def location-avg

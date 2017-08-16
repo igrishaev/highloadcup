@@ -2,34 +2,13 @@
   (:require [highloadcup.conf :refer [conf]]
             [mount.core :as mount]
             [clj-time.core :as t]
-            [clj-time.coerce :as c]
-            [hugsql.core :as hugsql]
-            [clojure.java.jdbc :as j]))
-
-(declare conn)
-
-(hugsql/def-db-fns "queries.sql")
-
-(defn load-schema []
-  (create-users-table conn)
-  (create-locations-table conn)
-  (create-visits-table conn))
-
-(defn on-start []
-  (let [db-uri (:db-url conf)
-        spec {:connection-uri db-uri}
-        conn (j/get-connection spec)]
-    (assoc spec :connection conn)))
-
-(defn on-stop []
-  (-> conn :connection .close)
-  nil)
+            [clj-time.coerce :as c]))
 
 (mount/defstate
   ^{:on-reload :noop}
   conn
-  :start (on-start)
-  :stop (on-stop))
+  :start (agent {})
+  :stop nil)
 
 (defn start []
   (mount/start #'conn))
@@ -37,24 +16,23 @@
 (defn stop []
   (mount/stop #'conn))
 
-(defn get-entity [table id]
-  (j/get-by-id conn table id))
+(defn get-entity [entity id]
+  (get-in @conn [entity id]))
+
+(defn create-entity [table {id :id :as fields}]
+  (send conn assoc-in [table id] fields))
+
+(defn update-entity
+  [table id fields]
+  (send conn update-in [table id] merge fields))
 
 (def get-user (partial get-entity :users))
 (def get-location (partial get-entity :locations))
 (def get-visit (partial get-entity :visits))
 
-(defn create-entity [table fields]
-  (j/insert! conn table fields))
-
 (def create-user (partial create-entity :users))
 (def create-location (partial create-entity :locations))
 (def create-visit (partial create-entity :visits))
-
-(defn update-entity
-  [table id fields]
-  (j/update! conn table fields
-             ["id = ?" id]))
 
 (def update-user (partial update-entity :users))
 (def update-location (partial update-entity :locations))
@@ -62,3 +40,79 @@
 
 (defn age-to-ts [to-age]
   (c/to-epoch (t/minus (t/now) (t/years to-age))))
+
+(defn get-user-visits
+  [user-id {:keys [fromDate toDate toDistance country]}]
+
+  (let [preds (cond-> []
+
+                  true
+                  (conj #(-> % :user (= user-id)))
+
+                  fromDate
+                  (conj #(-> % :visited_at (> fromDate)))
+
+                  toDate
+                  (conj #(-> % :visited_at (< toDate)))
+
+                  toDistance
+                  (conj #(-> % :location get-location :distance (< toDistance)))
+
+                  country
+                  (conj #(-> % :location get-location :country (= country))))
+
+        super-pred (apply every-pred preds)
+
+        visits (filter super-pred (-> @conn :visits vals))
+
+        ]
+
+    (sort-by
+     :visited_at
+     (for [visit visits]
+       {:visited_at (:visited_at visit)
+        :mark (:mark visit)
+        :place (-> visit :location get-location :place)})))
+  )
+
+
+(defn get-location-avg
+  [location-id {:keys [fromDate toDate fromAge toAge gender]}]
+
+  (let [preds (cond-> []
+
+                  true
+                  (conj #(-> % :location (= location-id)))
+
+                  fromDate
+                  (conj #(-> % :visited_at (> fromDate)))
+
+                  toDate
+                  (conj #(-> % :visited_at (< toDate)))
+
+                  fromAge
+                  (conj #(-> % :user get-user :birth_date (< (age-to-ts fromAge))))
+
+                  toAge
+                  (conj #(-> % :user get-user :birth_date (> (age-to-ts toAge))))
+
+                  gender
+                  (conj #(-> % :user get-user :gender (= gender))))
+
+        super-pred (apply every-pred preds)
+
+        visits (filter super-pred (-> @conn :visits vals))
+
+        avg (if (empty? visits)
+              nil
+              (double
+               (/ (reduce + (map :mark visits))
+                  (count visits))))
+        ]
+
+    avg
+
+    )
+
+
+  )

@@ -9,7 +9,6 @@
 
 (defn start []
   (mount/start #'conf #'conn #'server)
-  (db/load-schema)
   (loader/auto-load))
 
 (defn stop []

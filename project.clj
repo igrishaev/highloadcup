@@ -6,9 +6,6 @@
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
                  [cprop "0.1.10"]
-                 [org.xerial/sqlite-jdbc "3.20.0"]
-                 [org.clojure/java.jdbc "0.7.0"]
-                 [com.layerware/hugsql "0.4.7"]
                  [cheshire "5.7.1"]
                  [compojure "1.6.0"]
                  [mount "0.1.11"]
