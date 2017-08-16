@@ -92,6 +92,7 @@
       (is (= (:body res) {}))))
 
   (testing "getting an updated user"
+    (Thread/sleep 500) ;; because of send-off
     (let [url (get-url "/users/1")
           res (client/get url base-params)]
       (is (= (:status res) 200))
