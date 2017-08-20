@@ -7,6 +7,7 @@
             [datomic.api :as d]))
 
 (declare conn)
+(declare db)
 
 (defn read-edn
   [filename]
@@ -17,7 +18,10 @@
 
 (defn transact
   [data]
-  @(d/transact conn data))
+  (d/transact conn data)
+  (future
+    (mount/stop #'db)
+    (mount/start #'db)))
 
 (defn load-schema []
   (-> "schema.edn" read-edn transact))
@@ -29,15 +33,20 @@
 
 (defn on-stop []
   (let [db-url (:db-url conf)]
-    (d/delete-database db-url)
-    ;; close conn
-    nil))
+    (mount/stop #'db)
+    (d/delete-database db-url)))
 
 (mount/defstate
   ^{:on-reload :noop}
   conn
   :start (on-start)
   :stop (on-stop))
+
+(mount/defstate
+  ^{:on-reload :noop}
+  db
+  :start (d/db conn)
+  :stop nil)
 
 (defn start []
   (mount/start #'conn))
@@ -46,12 +55,12 @@
   (mount/stop #'conn))
 
 (defn query [q & args]
-  (apply d/q q (d/db conn) args))
+  (apply d/q q db args))
 
 (defn get-entity [entity id]
   (let [pk (keyword entity "id") ;; todo copypaste
         ref [pk id]
-        e (d/pull (d/db conn) '[*] ref)]
+        e (d/pull db '[*] ref)]
     (when-let [id (pk e)]
       (-> e
           (dissoc pk :db/id)
@@ -109,7 +118,7 @@
 
     true
     (update :args conj
-            (d/db conn)
+            db
             user-id)
 
     fromDate
@@ -165,7 +174,7 @@
 
     true
     (update :args conj
-            (d/db conn)
+            db
             location-id)
 
     (or fromDate toDate)

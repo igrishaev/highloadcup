@@ -1,14 +1,14 @@
 (ns highloadcup.core
   (:gen-class)
   (:require [highloadcup.conf :refer [conf]]
-            [highloadcup.db :refer [conn] :as db]
+            [highloadcup.db :refer [conn db] :as db]
             [highloadcup.server :refer [server]]
             [highloadcup.loader :as loader]
             [highloadcup.warmup :as warmup]
             [mount.core :as mount]))
 
 (defn start []
-  (mount/start #'conf #'conn #'server)
+  (mount/start #'conf #'conn #'db #'server)
   (db/load-schema)
   (loader/auto-load))
 
@@ -18,7 +18,7 @@
 (defn -main
   [& args]
   (start)
-  (warmup/run (:warmup-ratio conf)))
+  #_(warmup/run (:warmup-ratio conf)))
 
 ;; todo:
 ;; do not deref transaction
