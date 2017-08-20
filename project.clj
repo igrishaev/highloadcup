@@ -12,7 +12,9 @@
                  [mount "0.1.11"]
                  [clj-http "3.5.0"]
                  [ring/ring-jetty-adapter "1.6.2"]
-                 [ring/ring-json "0.4.0"]]
+                 [ring/ring-json "0.4.0"]
+
+                 [org.rapidoid/rapidoid-quick "5.4.2"]]
 
   :main ^:skip-aot highloadcup.core
 

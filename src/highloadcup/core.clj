@@ -18,7 +18,7 @@
 (defn -main
   [& args]
   (start)
-  (warmup/run (:warmup-ratio conf)))
+  #_(warmup/run (:warmup-ratio conf)))
 
 ;; todo:
 ;; do not deref transaction

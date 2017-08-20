@@ -7,7 +7,15 @@
             [mount.core :as mount]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.json :refer
-             [wrap-json-response wrap-json-body]]))
+             [wrap-json-response wrap-json-body]]
+
+            [highloadcup.db :as db]
+
+            )
+  (:import org.rapidoid.setup.On
+           org.rapidoid.http.ReqHandler)
+
+  )
 
 (defroutes api-routes
   (GET "/users/:id" [id :<< as-int]
@@ -47,16 +55,32 @@
       (wrap-json-body {:keywords? true})
       wrap-json-response))
 
-(defn get-jetty-params []
-  {:port (:server-port conf)
-   :host (:server-host conf)
-   :join? false})
+(def json-handler
+  (reify ReqHandler
+    (execute [_ ^Object req]
+      {:foo 999})))
+
+(def json-handler2
+  (reify ReqHandler
+    (execute [_ ^Object req]
+      (db/get-user 1))))
+(defn on-start []
+  (-> "/foo"
+      On/get
+      (.json json-handler))
+  (-> "/bar/{id}"
+      On/get
+      (.json json-handler2))
+  nil)
+
+(defn on-stop []
+  (.shutdown (On/setup)))
 
 (mount/defstate
   ^{:on-reload :noop}
   server
-  :start (run-jetty api-routes* (get-jetty-params))
-  :stop (.stop server))
+  :start (on-start)
+  :stop (on-stop))
 
 (defn start []
   (mount/start #'server))
